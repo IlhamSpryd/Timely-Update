@@ -15,10 +15,7 @@ class Onboarding extends StatefulWidget {
 class _OnboardingState extends State<Onboarding> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-
   final Color backgroundColor = const Color(0xFF0D0D0D);
-
-  // [PERUBAHAN] Data teks diperbarui untuk aplikasi absensi
   final List<OnboardingPageData> _pages = [
     OnboardingPageData(
       title: "Selamat Datang di Timely",

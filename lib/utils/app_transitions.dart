@@ -1,5 +1,3 @@
-// lib/utils/app_transitions.dart
-
 import 'package:flutter/material.dart';
 
 class SlideFadeRoute extends PageRouteBuilder {

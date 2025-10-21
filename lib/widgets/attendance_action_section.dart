@@ -35,9 +35,7 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
   bool _isAnimatingCheckOut = false;
   bool _isLoadingCheckIn = false;
   bool _isLoadingCheckOut = false;
-
-  // Konstanta untuk ukuran knob dan padding
-  static const double _knobSize = 52.0; // Sedikit lebih kecil
+  static const double _knobSize = 52.0;
   static const double _padding = AppTheme.spacing4;
   static const double _buttonHeight = 60.0;
 
@@ -51,7 +49,7 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
     if (!isCheckIn && _isAnimatingCheckOut) return;
 
     final effectiveWidth = maxExtent - (2 * _padding) - _knobSize;
-    if (effectiveWidth <= 0) return; // Hindari pembagian dengan nol
+    if (effectiveWidth <= 0) return;
 
     double newProgress;
     if (isCheckIn) {
@@ -124,19 +122,17 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
             _isLoadingCheckOut = true;
           }
         });
-
-        // Simulasi loading
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
-            onCompleted(); // Panggil callback setelah simulasi
+            onCompleted();
             setState(() {
               if (isCheckIn) {
                 _isLoadingCheckIn = false;
-                _swipeProgressCheckIn = 0.0; // Reset setelah onCompleted
+                _swipeProgressCheckIn = 0.0;
                 _isAnimatingCheckIn = false;
               } else {
                 _isLoadingCheckOut = false;
-                _swipeProgressCheckOut = 0.0; // Reset setelah onCompleted
+                _swipeProgressCheckOut = 0.0;
                 _isAnimatingCheckOut = false;
               }
             });
@@ -172,7 +168,7 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
           isLoading: _isLoadingCheckIn,
           onSwipe: () => _onSwipeEnd(widget.onCheckIn, isCheckIn: true),
         ),
-        const SizedBox(height: AppTheme.spacing12), 
+        const SizedBox(height: AppTheme.spacing12),
         _buildSlideButton(
           context,
           label: 'attendance_actions.swipe_to_check_out'.tr(),
@@ -184,7 +180,7 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
           isLoading: _isLoadingCheckOut,
           onSwipe: () => _onSwipeEnd(widget.onCheckOut, isCheckIn: false),
         ),
-        const SizedBox(height: AppTheme.spacing16), 
+        const SizedBox(height: AppTheme.spacing16),
         _buildPermitButton(context),
       ],
     );

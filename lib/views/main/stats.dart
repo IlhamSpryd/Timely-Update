@@ -1,5 +1,3 @@
-// lib/stats.dart
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,7 +10,7 @@ import 'package:timely/api/history_api.dart';
 import 'package:timely/models/absen_stats.dart';
 import 'package:timely/models/historyabsen_model.dart';
 import 'package:timely/services/history_service.dart';
-import 'package:timely/utils/app_theme.dart'; // Import AppTheme
+import 'package:timely/utils/app_theme.dart';
 import 'package:timely/views/all_users_page.dart';
 
 enum ChartType { pie, bar }
@@ -214,7 +212,6 @@ class _StatisticsPageState extends State<StatisticsPage>
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
-    // Gunakan SnackBar kustom dari AppTheme
     ScaffoldMessenger.of(context).showSnackBar(
       isError
           ? AppTheme.errorSnackBar(message)
@@ -326,8 +323,7 @@ class _StatisticsPageState extends State<StatisticsPage>
                                 title: Text(
                                   "stats.title".tr(),
                                   style: GoogleFonts.manrope(
-                                    // FONT
-                                    fontWeight: FontWeight.bold, // WEIGHT
+                                    fontWeight: FontWeight.bold,
                                     color: theme.textTheme.titleLarge?.color,
                                   ),
                                 ),
@@ -338,8 +334,8 @@ class _StatisticsPageState extends State<StatisticsPage>
                                 IconButton(
                                   icon: Icon(
                                     Icons.people_outline_rounded,
-                                    color: AppTheme.getTextPrimaryColor(
-                                        context), // WARNA
+                                    color:
+                                        AppTheme.getTextPrimaryColor(context),
                                   ),
                                   onPressed: () {
                                     Navigator.push(
@@ -350,32 +346,27 @@ class _StatisticsPageState extends State<StatisticsPage>
                                       ),
                                     );
                                   },
-                                  tooltip: 'all_users.title'.tr(), // LOKALISASI
+                                  tooltip: 'all_users.title'.tr(),
                                 ),
-                                const SizedBox(
-                                    width: AppTheme.spacing8), // SPACING
+                                const SizedBox(width: AppTheme.spacing8),
                               ],
                             ),
                             SliverList(
                               delegate: SliverChildListDelegate([
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal:
-                                          AppTheme.spacing16), // SPACING
+                                      horizontal: AppTheme.spacing16),
                                   child: Column(
                                     children: [
                                       _buildGamificationCard(isDarkMode),
                                       const SizedBox(
-                                          height:
-                                              AppTheme.spacing16), // SPACING
+                                          height: AppTheme.spacing16),
                                       _buildSummaryCard(isDarkMode),
                                       const SizedBox(
-                                          height:
-                                              AppTheme.spacing16), // SPACING
+                                          height: AppTheme.spacing16),
                                       _buildExportCard(isDarkMode),
                                       const SizedBox(
-                                          height:
-                                              AppTheme.spacing24), // SPACING
+                                          height: AppTheme.spacing24),
                                     ],
                                   ),
                                 ),
@@ -397,11 +388,10 @@ class _StatisticsPageState extends State<StatisticsPage>
     final hasChartData = (totalMasuk + totalIzin + totalAlpha) > 0;
 
     return Container(
-      padding: const EdgeInsets.all(AppTheme.spacing20), // SPACING
-      decoration: AppTheme.elevatedCard(isDark: isDarkMode), // DEKORASI
+      padding: const EdgeInsets.all(AppTheme.spacing20),
+      decoration: AppTheme.elevatedCard(isDark: isDarkMode),
       child: Column(
         children: [
-          // Level Section
           Row(
             children: [
               Container(
@@ -427,9 +417,8 @@ class _StatisticsPageState extends State<StatisticsPage>
                       child: Text(
                         '${data.level}',
                         style: GoogleFonts.manrope(
-                          // FONT
                           fontSize: 28,
-                          fontWeight: FontWeight.w700, // WEIGHT
+                          fontWeight: FontWeight.w700,
                           color: theme.colorScheme.onPrimary,
                         ),
                       ),
@@ -437,7 +426,7 @@ class _StatisticsPageState extends State<StatisticsPage>
                   ],
                 ),
               ),
-              const SizedBox(width: AppTheme.spacing20), // SPACING
+              const SizedBox(width: AppTheme.spacing20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,35 +434,32 @@ class _StatisticsPageState extends State<StatisticsPage>
                     Text(
                       'stats.level_progress_title'.tr(),
                       style: GoogleFonts.manrope(
-                        // FONT
                         fontSize: 18,
-                        fontWeight: FontWeight.w600, // WEIGHT
-                        color: AppTheme.getTextPrimaryColor(context), // WARNA
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.getTextPrimaryColor(context),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: AppTheme.spacing4), // SPACING
+                    const SizedBox(height: AppTheme.spacing4),
                     Text(
                       data.progressMessage,
                       style: GoogleFonts.manrope(
-                        // FONT
                         fontSize: 14,
-                        color: AppTheme.getTextSecondaryColor(context), // WARNA
+                        color: AppTheme.getTextSecondaryColor(context),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: AppTheme.spacing8), // SPACING
+                    const SizedBox(height: AppTheme.spacing8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.spacing12, // SPACING
+                        horizontal: AppTheme.spacing12,
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primary.withOpacity(0.15),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radius8), // RADIUS
+                        borderRadius: BorderRadius.circular(AppTheme.radius8),
                         border: Border.all(
                           color: theme.colorScheme.primary.withOpacity(0.3),
                           width: 1,
@@ -482,7 +468,6 @@ class _StatisticsPageState extends State<StatisticsPage>
                       child: Text(
                         '${data.xp} XP',
                         style: GoogleFonts.manrope(
-                          // FONT
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: theme.colorScheme.primary,
@@ -494,21 +479,17 @@ class _StatisticsPageState extends State<StatisticsPage>
               ),
             ],
           ),
-
-          // Chart Section
           if (hasChartData) ...[
-            const SizedBox(height: AppTheme.spacing20), // SPACING
-            AppTheme.divider(isDark: isDarkMode), // DIVIDER
-            const SizedBox(height: AppTheme.spacing20), // SPACING
-
-            // Chart Type Selector
+            const SizedBox(height: AppTheme.spacing20),
+            AppTheme.divider(isDark: isDarkMode),
+            const SizedBox(height: AppTheme.spacing20),
             SegmentedButton<ChartType>(
               segments: <ButtonSegment<ChartType>>[
                 ButtonSegment<ChartType>(
                   value: ChartType.pie,
                   label: Text(
                     'stats.pie_chart'.tr(),
-                    style: GoogleFonts.manrope(fontSize: 12), // FONT
+                    style: GoogleFonts.manrope(fontSize: 12),
                   ),
                   icon: const Icon(Icons.pie_chart_outline_rounded, size: 18),
                 ),
@@ -516,7 +497,7 @@ class _StatisticsPageState extends State<StatisticsPage>
                   value: ChartType.bar,
                   label: Text(
                     'stats.bar_chart'.tr(),
-                    style: GoogleFonts.manrope(fontSize: 12), // FONT
+                    style: GoogleFonts.manrope(fontSize: 12),
                   ),
                   icon: const Icon(Icons.bar_chart_rounded, size: 18),
                 ),
@@ -525,18 +506,13 @@ class _StatisticsPageState extends State<StatisticsPage>
               onSelectionChanged: (Set<ChartType> newSelection) =>
                   setState(() => _selectedChartType = newSelection.first),
               style: SegmentedButton.styleFrom(
-                backgroundColor:
-                    theme.colorScheme.surfaceContainerHighest, // WARNA
-                foregroundColor:
-                    AppTheme.getTextSecondaryColor(context), // WARNA
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                foregroundColor: AppTheme.getTextSecondaryColor(context),
                 selectedForegroundColor: theme.colorScheme.onPrimary,
                 selectedBackgroundColor: theme.colorScheme.primary,
               ),
             ),
-
-            const SizedBox(height: AppTheme.spacing20), // SPACING
-
-            // Chart Display
+            const SizedBox(height: AppTheme.spacing20),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
               transitionBuilder: (Widget child, Animation<double> animation) {
@@ -569,17 +545,17 @@ class _StatisticsPageState extends State<StatisticsPage>
       _ChartData(
         'home.present_label'.tr(),
         totalMasuk,
-        AppTheme.getStatusColor('present'), // WARNA TEMA
+        AppTheme.getStatusColor('present'),
       ),
       _ChartData(
         'home.leave_label'.tr(),
         totalIzin,
-        AppTheme.getStatusColor('leave'), // WARNA TEMA
+        AppTheme.getStatusColor('leave'),
       ),
       _ChartData(
         'home.alpha_label'.tr(),
         totalAlpha,
-        AppTheme.getStatusColor('absent'), // WARNA TEMA
+        AppTheme.getStatusColor('absent'),
       ),
     ].where((item) => item.value > 0).toList();
 
@@ -597,7 +573,7 @@ class _StatisticsPageState extends State<StatisticsPage>
                 pointColorMapper: (_ChartData data, _) => data.color,
                 innerRadius: '65%',
                 radius: '90%',
-                strokeColor: AppTheme.getBackgroundColor(context), // WARNA TEMA
+                strokeColor: AppTheme.getBackgroundColor(context),
                 strokeWidth: 3,
                 dataLabelMapper: (_ChartData data, _) => '${data.value}',
                 dataLabelSettings: DataLabelSettings(
@@ -608,13 +584,12 @@ class _StatisticsPageState extends State<StatisticsPage>
                     width: 2,
                     length: '15%',
                     color: AppTheme.getTextSecondaryColor(context)
-                        .withOpacity(0.5), // WARNA TEMA
+                        .withOpacity(0.5),
                   ),
                   textStyle: GoogleFonts.manrope(
-                    // FONT
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
+                    color: AppTheme.getTextPrimaryColor(context),
                   ),
                   labelIntersectAction: LabelIntersectAction.shift,
                   useSeriesColor: false,
@@ -627,12 +602,12 @@ class _StatisticsPageState extends State<StatisticsPage>
             ],
           ),
         ),
-        const SizedBox(height: AppTheme.spacing16), // SPACING
+        const SizedBox(height: AppTheme.spacing16),
         Container(
-          padding: const EdgeInsets.all(AppTheme.spacing16), // SPACING
+          padding: const EdgeInsets.all(AppTheme.spacing16),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest, // WARNA TEMA
-            borderRadius: BorderRadius.circular(AppTheme.radius12), // RADIUS
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(AppTheme.radius12),
           ),
           child: Wrap(
             spacing: 20,
@@ -651,15 +626,14 @@ class _StatisticsPageState extends State<StatisticsPage>
                       shape: BoxShape.circle,
                     ),
                   ),
-                  const SizedBox(width: AppTheme.spacing8), // SPACING
+                  const SizedBox(width: AppTheme.spacing8),
                   Flexible(
                     child: Text(
                       '${item.label}: ',
                       style: GoogleFonts.manrope(
-                        // FONT
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.getTextPrimaryColor(context), // WARNA
+                        color: AppTheme.getTextPrimaryColor(context),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -667,7 +641,6 @@ class _StatisticsPageState extends State<StatisticsPage>
                   Text(
                     '$percentage%',
                     style: GoogleFonts.manrope(
-                      // FONT
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: item.color,
@@ -692,26 +665,26 @@ class _StatisticsPageState extends State<StatisticsPage>
       _ChartData(
         'home.present_label'.tr(),
         totalMasuk,
-        AppTheme.getStatusColor('present'), // WARNA TEMA
+        AppTheme.getStatusColor('present'),
       ),
       _ChartData(
         'home.leave_label'.tr(),
         totalIzin,
-        AppTheme.getStatusColor('leave'), // WARNA TEMA
+        AppTheme.getStatusColor('leave'),
       ),
       _ChartData(
         'home.alpha_label'.tr(),
         totalAlpha,
-        AppTheme.getStatusColor('absent'), // WARNA TEMA
+        AppTheme.getStatusColor('absent'),
       ),
     ];
 
     return Container(
       height: 280,
-      padding: const EdgeInsets.all(AppTheme.spacing12), // SPACING
+      padding: const EdgeInsets.all(AppTheme.spacing12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest, // WARNA TEMA
-        borderRadius: BorderRadius.circular(AppTheme.radius12), // RADIUS
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppTheme.radius12),
       ),
       child: SfCartesianChart(
         plotAreaBorderWidth: 0,
@@ -720,8 +693,7 @@ class _StatisticsPageState extends State<StatisticsPage>
           axisLine: const AxisLine(width: 0),
           majorTickLines: const MajorTickLines(width: 0),
           labelStyle: GoogleFonts.manrope(
-            // FONT
-            color: AppTheme.getTextSecondaryColor(context), // WARNA TEMA
+            color: AppTheme.getTextSecondaryColor(context),
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
@@ -729,14 +701,13 @@ class _StatisticsPageState extends State<StatisticsPage>
         primaryYAxis: NumericAxis(
           majorGridLines: MajorGridLines(
             width: 1,
-            color: theme.colorScheme.outline.withOpacity(0.3), // WARNA TEMA
+            color: theme.colorScheme.outline.withOpacity(0.3),
             dashArray: const <double>[5, 5],
           ),
           axisLine: const AxisLine(width: 0),
           majorTickLines: const MajorTickLines(width: 0),
           labelStyle: GoogleFonts.manrope(
-            // FONT
-            color: AppTheme.getTextSecondaryColor(context), // WARNA TEMA
+            color: AppTheme.getTextSecondaryColor(context),
             fontSize: 11,
           ),
         ),
@@ -747,8 +718,8 @@ class _StatisticsPageState extends State<StatisticsPage>
             yValueMapper: (_ChartData data, _) => data.value,
             pointColorMapper: (_ChartData data, _) => data.color,
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(AppTheme.radius8), // RADIUS
-              topRight: Radius.circular(AppTheme.radius8), // RADIUS
+              topLeft: Radius.circular(AppTheme.radius8),
+              topRight: Radius.circular(AppTheme.radius8),
             ),
             width: 0.6,
             spacing: 0.15,
@@ -757,8 +728,7 @@ class _StatisticsPageState extends State<StatisticsPage>
               isVisible: true,
               labelAlignment: ChartDataLabelAlignment.top,
               textStyle: GoogleFonts.manrope(
-                // FONT
-                color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
+                color: AppTheme.getTextPrimaryColor(context),
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -777,38 +747,38 @@ class _StatisticsPageState extends State<StatisticsPage>
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: AppTheme.spacing12, // SPACING
-        horizontal: AppTheme.spacing20, // SPACING
+        vertical: AppTheme.spacing12,
+        horizontal: AppTheme.spacing20,
       ),
-      decoration: AppTheme.elevatedCard(isDark: isDarkMode), // DEKORASI
+      decoration: AppTheme.elevatedCard(isDark: isDarkMode),
       child: Column(
         children: [
           _buildStatRow(
             Icons.calendar_today_rounded,
             'stats.total_days_absen'.tr(),
             '$totalAbsen',
-            AppTheme.getStatusColor('info'), // WARNA TEMA
+            AppTheme.getStatusColor('info'),
           ),
           _buildDivider(isDarkMode),
           _buildStatRow(
             Icons.check_circle_outline_rounded,
             'stats.total_present'.tr(),
             '$totalMasuk',
-            AppTheme.getStatusColor('present'), // WARNA TEMA
+            AppTheme.getStatusColor('present'),
           ),
           _buildDivider(isDarkMode),
           _buildStatRow(
             Icons.info_outline_rounded,
             'stats.total_leave'.tr(),
             '$totalIzin',
-            AppTheme.getStatusColor('leave'), // WARNA TEMA
+            AppTheme.getStatusColor('leave'),
           ),
           _buildDivider(isDarkMode),
           _buildStatRow(
             Icons.highlight_off_rounded,
             'stats.total_alpha'.tr(),
             '$totalAlpha',
-            AppTheme.getStatusColor('absent'), // WARNA TEMA
+            AppTheme.getStatusColor('absent'),
           ),
         ],
       ),
@@ -816,30 +786,28 @@ class _StatisticsPageState extends State<StatisticsPage>
   }
 
   Widget _buildStatRow(IconData icon, String title, String value, Color color) {
-    final iconBgColor = color.withOpacity(0.1); // Penyesuaian opacity
+    final iconBgColor = color.withOpacity(0.1);
 
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(vertical: AppTheme.spacing16), // SPACING
+      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing16),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(AppTheme.spacing12), // SPACING
+            padding: const EdgeInsets.all(AppTheme.spacing12),
             decoration: BoxDecoration(
               color: iconBgColor,
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(width: AppTheme.spacing16), // SPACING
+          const SizedBox(width: AppTheme.spacing16),
           Expanded(
             child: Text(
               title,
               style: GoogleFonts.manrope(
-                // FONT
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
+                color: AppTheme.getTextPrimaryColor(context),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -848,10 +816,9 @@ class _StatisticsPageState extends State<StatisticsPage>
           Text(
             value,
             style: GoogleFonts.manrope(
-              // FONT
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
+              color: AppTheme.getTextPrimaryColor(context),
             ),
           ),
         ],
@@ -860,15 +827,15 @@ class _StatisticsPageState extends State<StatisticsPage>
   }
 
   Widget _buildExportCard(bool isDarkMode) {
-    final color = AppTheme.getStatusColor('absent'); // WARNA TEMA
+    final color = AppTheme.getStatusColor('absent');
     final iconBgColor = color.withOpacity(0.1);
 
     return Container(
-      decoration: AppTheme.elevatedCard(isDark: isDarkMode), // DEKORASI
+      decoration: AppTheme.elevatedCard(isDark: isDarkMode),
       child: ListTile(
         onTap: _isExporting ? null : _exportToPdf,
         leading: Container(
-          padding: const EdgeInsets.all(AppTheme.spacing12), // SPACING
+          padding: const EdgeInsets.all(AppTheme.spacing12),
           decoration: BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
           child: Icon(
             Icons.picture_as_pdf_outlined,
@@ -879,10 +846,9 @@ class _StatisticsPageState extends State<StatisticsPage>
         title: Text(
           'stats.export_to_pdf'.tr(),
           style: GoogleFonts.manrope(
-            // FONT
             fontWeight: FontWeight.w600,
             fontSize: 16,
-            color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
+            color: AppTheme.getTextPrimaryColor(context),
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -895,11 +861,11 @@ class _StatisticsPageState extends State<StatisticsPage>
               )
             : Icon(
                 Icons.chevron_right_rounded,
-                color: AppTheme.getTextSecondaryColor(context), // WARNA TEMA
+                color: AppTheme.getTextSecondaryColor(context),
               ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.spacing20, // SPACING
-          vertical: AppTheme.spacing12, // SPACING
+          horizontal: AppTheme.spacing20,
+          vertical: AppTheme.spacing12,
         ),
       ),
     );
@@ -907,18 +873,16 @@ class _StatisticsPageState extends State<StatisticsPage>
 
   Widget _buildDivider(bool isDarkMode) {
     return Padding(
-      padding: const EdgeInsets.only(
-          left: 58.0), // 22(ikon)+12(padding)+16(spasi) ~ 50
-      child: AppTheme.divider(isDark: isDarkMode), // DIVIDER TEMA
+      padding: const EdgeInsets.only(left: 58.0),
+      child: AppTheme.divider(isDark: isDarkMode),
     );
   }
 
   Widget _buildLoadingView(bool isDarkMode) =>
-      AppTheme.loadingIndicator(isDark: isDarkMode); // WIDGET TEMA
+      AppTheme.loadingIndicator(isDark: isDarkMode);
 
   Widget _buildErrorView(bool isDarkMode) {
     return AppTheme.emptyState(
-      // WIDGET TEMA
       title: 'history.error_title'.tr(),
       message: _errorMessage,
       icon: Icons.cloud_off_rounded,
@@ -927,14 +891,13 @@ class _StatisticsPageState extends State<StatisticsPage>
         onPressed: _loadData,
         icon: const Icon(Icons.refresh_rounded, size: 18),
         label: Text('history.try_again'.tr()),
-        style: Theme.of(context).elevatedButtonTheme.style, // STYLE TEMA
+        style: Theme.of(context).elevatedButtonTheme.style,
       ),
     );
   }
 
   Widget _buildEmptyView(bool isDarkMode) {
     return AppTheme.emptyState(
-      // WIDGET TEMA
       title: 'stats.no_data_title'.tr(),
       message: 'stats.no_data_subtitle'.tr(),
       icon: Icons.analytics_outlined,
@@ -965,9 +928,6 @@ class _GamificationData {
     required this.levelProgress,
   });
 }
-
-// --- PDF Generation Code (No UI changes needed) ---
-// (Kode di bawah ini tidak diubah karena merupakan logika PDF, bukan UI Flutter)
 
 pw.Widget _buildPdfStatRow(String label, int value) {
   return pw.Padding(

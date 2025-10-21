@@ -45,11 +45,9 @@ class _ModernHomePageState extends State<ModernHomePage>
   String _currentAddress = "location.getting_location".tr();
   final Set<Marker> _markers = {};
   Circle? _officeCircle;
-  final LatLng _officeLocation = const LatLng(
-    -6.326006197470815,
-    106.87298491839785,
-  );
-  final double _officeRadius = 50.0;
+  final LatLng _officeLocation =
+      const LatLng(-6.210872482049023, 106.81294381543442);
+  final double _officeRadius = 20.0;
   bool _isSubmitting = false;
   bool _isLoadingLocation = false;
   late final AnimationController _mainAnimationController;
@@ -194,13 +192,13 @@ class _ModernHomePageState extends State<ModernHomePage>
     _markers.clear();
     _markers.add(
       Marker(
-        markerId: const MarkerId('ppkd'), // ID diubah
+        markerId: const MarkerId('ppkd'),
         position: _officeLocation,
-        infoWindow: const InfoWindow(title: 'PPKD'), // Title diubah
+        infoWindow: const InfoWindow(title: 'PPKD'),
       ),
     );
     _officeCircle = Circle(
-      circleId: const CircleId('ppkdRadius'), // ID diubah
+      circleId: const CircleId('ppkdRadius'),
       center: _officeLocation,
       radius: _officeRadius,
       fillColor: theme.colorScheme.primary.withOpacity(0.1),
@@ -744,9 +742,7 @@ class _ModernHomePageState extends State<ModernHomePage>
               ],
             ),
           ),
-          if (_isSubmitting)
-            AppTheme.loadingIndicator(
-                isDark: isDarkMode), // Menggunakan loading indicator tema
+          if (_isSubmitting) AppTheme.loadingIndicator(isDark: isDarkMode),
         ],
       ),
     );

@@ -17,8 +17,6 @@ class AbsenStatsCard extends StatelessWidget {
     final totalHadir = statsData!.totalMasuk ?? 0;
     final totalIzin = statsData!.totalIzin ?? 0;
     final totalHariKerja = statsData!.totalAbsen ?? 0;
-
-    // Hitung mangkir/absen
     final totalMangkir = (totalHariKerja - totalHadir - totalIzin) < 0
         ? 0
         : (totalHariKerja - totalHadir - totalIzin);
@@ -26,7 +24,6 @@ class AbsenStatsCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Header Bagian (Konsisten dengan AbsenStatusCard)
         Padding(
           padding: const EdgeInsets.only(
             left: AppTheme.spacing4,
@@ -42,18 +39,17 @@ class AbsenStatsCard extends StatelessWidget {
             ),
           ),
         ),
-        // 2. Konten Kartu (Konsisten dengan elevatedCard)
         Container(
           decoration: AppTheme.elevatedCard(isDark: isDarkMode),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildCardSummary(context, totalHariKerja),
-              AppTheme.divider(isDark: isDarkMode), // 3. Divider Konsisten
+              AppTheme.divider(isDark: isDarkMode),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: AppTheme.spacing16,
-                  horizontal: AppTheme.spacing8, // Tambahkan padding horizontal
+                  horizontal: AppTheme.spacing8,
                 ),
                 child: Row(
                   children: [
@@ -61,7 +57,7 @@ class AbsenStatsCard extends StatelessWidget {
                       child: _buildStatItem(
                         context,
                         icon: Icons
-                            .check_circle_outline_rounded, // 4. Ikon Outline
+                            .check_circle_outline_rounded,
                         color: AppTheme.getStatusColor('present'),
                         value: totalHadir,
                         label: "attendance_stats.present".tr(),
@@ -70,7 +66,7 @@ class AbsenStatsCard extends StatelessWidget {
                     Expanded(
                       child: _buildStatItem(
                         context,
-                        icon: Icons.event_busy_outlined, // 4. Ikon Outline
+                        icon: Icons.event_busy_outlined,
                         color: AppTheme.getStatusColor('leave'),
                         value: totalIzin,
                         label: "attendance_stats.leave".tr(),
@@ -79,7 +75,7 @@ class AbsenStatsCard extends StatelessWidget {
                     Expanded(
                       child: _buildStatItem(
                         context,
-                        icon: Icons.cancel_outlined, // 4. Ikon Outline
+                        icon: Icons.cancel_outlined,
                         color: AppTheme.getStatusColor('absent'),
                         value: totalMangkir,
                         label: "attendance_stats.absent".tr(),
@@ -143,8 +139,6 @@ class AbsenStatsCard extends StatelessWidget {
       ),
     );
   }
-
-  // Item statistik (Hadir, Izin, Absen)
   Widget _buildStatItem(
     BuildContext context, {
     required IconData icon,
@@ -159,7 +153,7 @@ class AbsenStatsCard extends StatelessWidget {
         Text(
           value.toString(),
           style: GoogleFonts.manrope(
-            fontSize: 20, // 5. Konsisten dengan ukuran font waktu
+            fontSize: 20,
             fontWeight: FontWeight.w700,
             color: AppTheme.getTextPrimaryColor(context),
             letterSpacing: -0.5,
