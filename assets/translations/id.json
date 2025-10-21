@@ -148,8 +148,8 @@
     "getting_location": "Mendapatkan lokasi...",
     "address_not_found": "Alamat tidak ditemukan",
     "failed_to_get_location": "Gagal mendapatkan lokasi",
-    "in_radius": "Dalam radius kantor",
-    "out_radius": "Di luar radius kantor",
+    "in_radius": "Dalam radius PPKD",
+    "out_radius": "Di luar radius PPKD",
     "in_radius_ppkd": "Dalam radius PPKD",
     "out_radius_ppkd": "Di luar radius PPKD",
     "map_type_normal": "Normal",
@@ -164,7 +164,7 @@
   },
   "attendance_stats": {
     "title": "Statistik Kehadiran",
-    "total_days": "Total {} hari kerja",
+    "total_days": "Total {} hari pelatihan",
     "this_month": "Bulan Ini",
     "present": "Hadir",
     "leave": "Izin",
@@ -198,7 +198,48 @@
     "delete_success": "Riwayat absensi berhasil dihapus.",
     "delete_failed": "Gagal menghapus riwayat: {}",
     "delete_button": "Hapus",
-    "cancel_button": "Batal"
+    "cancel_button": "Batal",
+    "error": {
+      "location_service_disabled": "Layanan lokasi nonaktif. Mohon aktifkan.",
+      "location_permission_denied": "Izin lokasi ditolak.",
+      "location_permission_denied_forever": "Izin lokasi ditolak permanen, kami tidak dapat meminta izin.",
+      "generic_fallback": "Terjadi kesalahan yang tidak terduga."
+    },
+    "snackbar": {
+      "check_in_success": "Absen masuk berhasil!",
+      "check_out_success": "Absen pulang berhasil!",
+      "leave_request_success": "Pengajuan izin berhasil dikirim."
+    },
+    "bot_check": {
+      "title": "Verifikasi Anti-Bot",
+      "subtitle": "Untuk melanjutkan, mohon jawab pertanyaan berikut:",
+      "label": "Jawaban Anda",
+      "submit_button": "Kirim",
+      "error_wrong_answer": "Jawaban salah, silakan coba lagi.",
+      "q_number": "Tuliskan angka 9",
+      "q_day": "Tuliskan nama hari ini (contoh: Jumat)",
+      "q_year": "Tuliskan 2 digit terakhir tahun ini"
+    },
+    "leave_dialog": {
+      "reason_hint": "Sakit, keperluan keluarga, dll.",
+      "error_reason_empty": "Alasan tidak boleh kosong.",
+      "submit_button": "Ajukan"
+    },
+    "reminder": {
+      "title": "Pengaturan Pengingat",
+      "enable_label": "Aktifkan Pengingat Harian",
+      "time_label": "Waktu Pengingat",
+      "notification_title": "Jangan Lupa Absen! ⏰",
+      "notification_body": "Sudah waktunya untuk melakukan absen masuk. Buka aplikasi sekarang.",
+      "snackbar_enabled": "Pengingat diaktifkan pukul {time}."
+    },
+    "loading_overlay": {
+      "processing": "Memproses...",
+      "wait_message": "Mohon tunggu sebentar"
+    },
+    "stats": {
+      "error_title": "Gagal memuat statistik"
+    }
   },
   "history": {
     "title": "Riwayat",
@@ -231,7 +272,7 @@
     "report_title": "Laporan Kehadiran",
     "current_level": "Level Saat Ini",
     "attendance_progress": "Progres Kehadiran: {}",
-    "total_days_absen": "Total Hari Kerja",
+    "total_days_absen": "Total Hari Pelatihan",
     "total_present": "Total Hadir",
     "total_leave": "Total Izin",
     "total_alpha": "Total Alpha",
@@ -368,7 +409,7 @@
     "header_title": "Privasi Anda Penting",
     "last_updated": "Terakhir diperbarui: {}",
     "questions_title": "Pertanyaan?",
-    "questions_body": "Jika Anda memiliki pertanyaan tentang kebijakan privasi kami, silakan hubungi kami di {}",
+    "questions_body": "Jika Anda memiliki pertanyaan tentang kebijakan privasi kami, silakan hubungi kami di ",
     "contact_email": "ilhamsepriyadi0@gmail.com"
   },
   "terms_of_service": {

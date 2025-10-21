@@ -1,5 +1,3 @@
-// lib/services/local_notification.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -32,20 +30,21 @@ class LocalNotificationService {
     );
   }
 
-  // --- FUNGSI DITAMBAHKAN ---
-  // Ini sangat penting untuk meminta izin dari pengguna
   static Future<void> requestPermissions() async {
-    // Untuk iOS
     await _notifications
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(alert: true, badge: true, sound: true);
 
-    // Untuk Android 13 (API 33) ke atas
     await _notifications
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+
+    await _notifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestExactAlarmsPermission();
   }
 
   static Future<void> scheduleDailyReminder(
@@ -53,7 +52,6 @@ class LocalNotificationService {
     String title,
     String body,
   ) async {
-    // Selalu batalkan pengingat lama sebelum menyetel yang baru
     await _notifications.cancelAll();
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
@@ -113,7 +111,7 @@ class LocalNotificationService {
   }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'info_channel', // Gunakan ID channel yang berbeda
+      'info_channel',
       'Informasi',
       channelDescription: 'Channel untuk informasi umum',
       importance: Importance.high,

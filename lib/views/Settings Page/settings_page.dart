@@ -13,6 +13,7 @@ import 'package:timely/services/profile_repository.dart';
 import 'package:timely/utils/app_theme.dart';
 import 'package:timely/utils/app_transitions.dart';
 import 'package:timely/utils/theme_helper.dart';
+import 'package:timely/utils/theme_provider.dart';
 import 'package:timely/views/Settings%20Page/change_password_page.dart';
 import 'package:timely/views/Settings%20Page/edit_profile_page.dart';
 import 'package:timely/views/Settings%20Page/privacy_policy_page.dart';
@@ -20,7 +21,6 @@ import 'package:timely/views/Settings%20Page/profile_detail_page.dart';
 import 'package:timely/views/Settings%20Page/settings_search_page.dart';
 import 'package:timely/views/Settings%20Page/terms_of_service_page.dart';
 import 'package:timely/views/auth/login_page.dart';
-import 'package:timely/widgets/theme_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   final void Function(ThemeMode)? updateTheme;
@@ -63,7 +63,6 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   void _toggleNotifications(bool value) {
-    // Pastikan state diupdate terlebih dahulu
     if (mounted) {
       setState(() {
         _notificationsEnabled = value;
@@ -79,10 +78,8 @@ class _SettingsPageState extends State<SettingsPage>
       LocalNotificationService.cancelAll();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('settings.notifications_disabled_snackbar'.tr()),
-            behavior: SnackBarBehavior.floating,
-          ),
+          AppTheme.infoSnackBar(
+              'settings.notifications_disabled_snackbar'.tr()),
         );
       }
     }
@@ -102,10 +99,7 @@ class _SettingsPageState extends State<SettingsPage>
       _logger.e('Error loading profile: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to load profile: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
+          AppTheme.errorSnackBar('Failed to load profile: ${e.toString()}'),
         );
       }
     } finally {
@@ -166,30 +160,31 @@ class _SettingsPageState extends State<SettingsPage>
 
       if (croppedFile != null && mounted) {
         setState(() => _isUploadingPhoto = true);
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('settings.uploading_photo_snackbar'.tr())),
-        );
+        scaffoldMessenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            AppTheme.infoSnackBar('settings.uploading_photo_snackbar'.tr()),
+          );
         await _profileRepository.updateProfilePhoto(croppedFile.path);
         if (mounted) {
-          scaffoldMessenger.hideCurrentSnackBar();
-          scaffoldMessenger.showSnackBar(
-            SnackBar(content: Text('settings.profile_photo_updated'.tr())),
-          );
+          scaffoldMessenger
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              AppTheme.successSnackBar('settings.profile_photo_updated'.tr()),
+            );
           await _loadUserProfile();
         }
       }
     } catch (e) {
       _logger.e('Failed to update profile photo: $e');
       if (mounted) {
-        scaffoldMessenger.hideCurrentSnackBar();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(
+        scaffoldMessenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            AppTheme.errorSnackBar(
               '${'settings.failed_update_photo'.tr()}: ${e.toString()}',
             ),
-            backgroundColor: theme.colorScheme.error,
-          ),
-        );
+          );
       }
     } finally {
       if (mounted) {
@@ -273,6 +268,8 @@ class _SettingsPageState extends State<SettingsPage>
         return AlertDialog(
           backgroundColor: theme.dialogTheme.backgroundColor,
           shape: theme.dialogTheme.shape,
+          titleTextStyle: theme.dialogTheme.titleTextStyle,
+          contentTextStyle: theme.dialogTheme.contentTextStyle,
           title: Text('settings.logout_confirm_title'.tr()),
           content: Text('settings.logout_confirm_body'.tr()),
           actions: [
@@ -287,7 +284,10 @@ class _SettingsPageState extends State<SettingsPage>
               },
               child: Text(
                 'settings.logout'.tr(),
-                style: TextStyle(color: theme.colorScheme.error),
+                style: GoogleFonts.manrope(
+                  color: theme.colorScheme.error,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -315,19 +315,16 @@ class _SettingsPageState extends State<SettingsPage>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: theme.bottomSheetTheme.backgroundColor,
+      shape: theme.bottomSheetTheme.shape,
       isScrollControlled: true,
       builder: (_) {
         return Container(
-          decoration: BoxDecoration(
-            color: theme.bottomSheetTheme.backgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                margin: const EdgeInsets.only(top: 12),
+                margin: const EdgeInsets.only(top: AppTheme.spacing12),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -336,7 +333,7 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppTheme.spacing20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -346,9 +343,9 @@ class _SettingsPageState extends State<SettingsPage>
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppTheme.spacing20),
                     _buildSelectionOption(
-                      title: 'settings.dark_mode_subtitle_on'.tr(), // "Nyala"
+                      title: 'settings.dark_mode_subtitle_on'.tr(),
                       isSelected: isDarkMode,
                       onTap: () {
                         _toggleTheme(true);
@@ -356,9 +353,9 @@ class _SettingsPageState extends State<SettingsPage>
                         HapticFeedback.selectionClick();
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppTheme.spacing12),
                     _buildSelectionOption(
-                      title: 'settings.dark_mode_subtitle_off'.tr(), // "Mati"
+                      title: 'settings.dark_mode_subtitle_off'.tr(),
                       isSelected: !isDarkMode,
                       onTap: () {
                         _toggleTheme(false);
@@ -369,7 +366,10 @@ class _SettingsPageState extends State<SettingsPage>
                   ],
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+              SizedBox(
+                height:
+                    MediaQuery.of(context).padding.bottom + AppTheme.spacing20,
+              ),
             ],
           ),
         );
@@ -382,19 +382,16 @@ class _SettingsPageState extends State<SettingsPage>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: theme.bottomSheetTheme.backgroundColor,
+      shape: theme.bottomSheetTheme.shape,
       isScrollControlled: true,
       builder: (_) {
         return Container(
-          decoration: BoxDecoration(
-            color: theme.bottomSheetTheme.backgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                margin: const EdgeInsets.only(top: 12),
+                margin: const EdgeInsets.only(top: AppTheme.spacing12),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -403,7 +400,7 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppTheme.spacing20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -413,10 +410,9 @@ class _SettingsPageState extends State<SettingsPage>
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppTheme.spacing20),
                     _buildSelectionOption(
-                      title:
-                          'settings.notifications_subtitle_on'.tr(), // "Aktif"
+                      title: 'settings.notifications_subtitle_on'.tr(),
                       isSelected: _notificationsEnabled,
                       onTap: () {
                         _toggleNotifications(true);
@@ -424,10 +420,9 @@ class _SettingsPageState extends State<SettingsPage>
                         HapticFeedback.selectionClick();
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppTheme.spacing12),
                     _buildSelectionOption(
-                      title:
-                          'settings.notifications_subtitle_off'.tr(), // "Mati"
+                      title: 'settings.notifications_subtitle_off'.tr(),
                       isSelected: !_notificationsEnabled,
                       onTap: () {
                         _toggleNotifications(false);
@@ -438,7 +433,10 @@ class _SettingsPageState extends State<SettingsPage>
                   ],
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+              SizedBox(
+                height:
+                    MediaQuery.of(context).padding.bottom + AppTheme.spacing20,
+              ),
             ],
           ),
         );
@@ -450,19 +448,16 @@ class _SettingsPageState extends State<SettingsPage>
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: theme.bottomSheetTheme.backgroundColor,
+      shape: theme.bottomSheetTheme.shape,
       isScrollControlled: true,
       builder: (_) {
         return Container(
-          decoration: BoxDecoration(
-            color: theme.bottomSheetTheme.backgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                margin: const EdgeInsets.only(top: 12),
+                margin: const EdgeInsets.only(top: AppTheme.spacing12),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -471,7 +466,7 @@ class _SettingsPageState extends State<SettingsPage>
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppTheme.spacing20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -481,7 +476,7 @@ class _SettingsPageState extends State<SettingsPage>
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: AppTheme.spacing20),
                     _buildSelectionOption(
                       title: 'English',
                       isSelected: context.locale.languageCode == 'en',
@@ -491,7 +486,7 @@ class _SettingsPageState extends State<SettingsPage>
                         HapticFeedback.selectionClick();
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppTheme.spacing12),
                     _buildSelectionOption(
                       title: 'Bahasa Indonesia',
                       isSelected: context.locale.languageCode == 'id',
@@ -501,7 +496,7 @@ class _SettingsPageState extends State<SettingsPage>
                         HapticFeedback.selectionClick();
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppTheme.spacing12),
                     _buildSelectionOption(
                       title: '한국어',
                       isSelected: context.locale.languageCode == 'ko',
@@ -514,7 +509,10 @@ class _SettingsPageState extends State<SettingsPage>
                   ],
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+              SizedBox(
+                height:
+                    MediaQuery.of(context).padding.bottom + AppTheme.spacing20,
+              ),
             ],
           ),
         );
@@ -532,14 +530,14 @@ class _SettingsPageState extends State<SettingsPage>
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radius12),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppTheme.spacing16),
           decoration: BoxDecoration(
             color: isSelected
                 ? theme.colorScheme.primary.withOpacity(0.1)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppTheme.radius12),
             border: Border.all(
               color: isSelected
                   ? theme.colorScheme.primary.withOpacity(0.3)
@@ -551,12 +549,12 @@ class _SettingsPageState extends State<SettingsPage>
               Expanded(
                 child: Text(
                   title,
-                  style: TextStyle(
+                  style: GoogleFonts.manrope(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: isSelected
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface,
+                        : AppTheme.getTextPrimaryColor(context),
                   ),
                 ),
               ),
@@ -595,67 +593,64 @@ class _SettingsPageState extends State<SettingsPage>
   Widget build(BuildContext context) {
     super.build(context);
     final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-
-    // --- AWAL PERUBAHAN ---
-    // Menyamakan logika background color dengan stats.dart dan history_page.dart
-    final scaffoldBackgroundColor =
-        isDarkMode ? Colors.black : const Color(0xFFF3F4F6);
-    // --- AKHIR PERUBAHAN ---
+    final isDarkMode = AppTheme.isDarkMode(context);
+    final scaffoldBackgroundColor = AppTheme.getBackgroundColor(context);
 
     return Scaffold(
-      // --- PERUBAHAN DI SINI ---
       backgroundColor: scaffoldBackgroundColor,
-      // --- AKHIR PERUBAHAN ---
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator.adaptive())
+          ? AppTheme.loadingIndicator(isDark: isDarkMode)
           : CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
                 SliverAppBar(
-                  // --- PERUBAHAN DI SINI ---
                   backgroundColor: scaffoldBackgroundColor,
-                  // --- AKHIR PERUBAHAN ---
                   pinned: true,
                   stretch: true,
                   expandedHeight: 120.0,
                   flexibleSpace: FlexibleSpaceBar(
-                    titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                    titlePadding: const EdgeInsets.only(
+                      left: AppTheme.spacing20,
+                      bottom: AppTheme.spacing16,
+                    ),
                     title: Text(
                       "settings.title".tr(),
                       style: GoogleFonts.manrope(
                         fontWeight: FontWeight.bold,
-                        color: theme.textTheme.titleLarge?.color,
+                        color: AppTheme.getTextPrimaryColor(context),
                       ),
                     ),
-                    // --- PERUBAHAN DI SINI ---
                     background: Container(color: scaffoldBackgroundColor),
-                    // --- AKHIR PERUBAHAN ---
                   ),
                   actions: [
                     IconButton(
-                      icon: const Icon(Icons.search),
+                      icon: Icon(
+                        Icons.search,
+                        color: AppTheme.getTextPrimaryColor(context),
+                      ),
                       onPressed: _navigateToSearch,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppTheme.spacing8),
                   ],
                 ),
                 SliverList(
                   delegate: SliverChildListDelegate([
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacing16,
+                      ),
                       child: Column(
                         children: [
                           _buildAnimatedItem(
                             0,
-                            _buildProfileHeader(theme.cardColor),
+                            _buildProfileHeader(isDarkMode),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.spacing20),
                           _buildAnimatedItem(
                             1,
                             _buildSettingsCard(
                               context,
-                              backgroundColor: theme.cardColor,
+                              isDarkMode: isDarkMode,
                               children: [
                                 _buildSettingTile(
                                   icon: Icons.person_outline_rounded,
@@ -676,12 +671,12 @@ class _SettingsPageState extends State<SettingsPage>
                               ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.spacing20),
                           _buildAnimatedItem(
                             2,
                             _buildSettingsCard(
                               context,
-                              backgroundColor: theme.cardColor,
+                              isDarkMode: isDarkMode,
                               children: [
                                 _buildSettingTile(
                                   icon: Icons.dark_mode_outlined,
@@ -715,12 +710,12 @@ class _SettingsPageState extends State<SettingsPage>
                               ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.spacing20),
                           _buildAnimatedItem(
                             3,
                             _buildSettingsCard(
                               context,
-                              backgroundColor: theme.cardColor,
+                              isDarkMode: isDarkMode,
                               children: [
                                 _buildSettingTile(
                                   icon: Icons.privacy_tip_outlined,
@@ -730,19 +725,20 @@ class _SettingsPageState extends State<SettingsPage>
                                 ),
                                 _buildSettingTile(
                                   icon: Icons.description_outlined,
-                                  iconColor: theme.colorScheme.onSurfaceVariant,
+                                  iconColor:
+                                      AppTheme.getTextSecondaryColor(context),
                                   title: "settings.terms_of_service".tr(),
                                   onTap: _navigateToTermsOfService,
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: AppTheme.spacing20),
                           _buildAnimatedItem(
                             4,
                             _buildSettingsCard(
                               context,
-                              backgroundColor: theme.cardColor,
+                              isDarkMode: isDarkMode,
                               children: [
                                 _buildSettingTile(
                                   icon: Icons.logout_rounded,
@@ -754,7 +750,7 @@ class _SettingsPageState extends State<SettingsPage>
                               ],
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: AppTheme.spacing24),
                         ],
                       ),
                     ),
@@ -765,16 +761,16 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
-  Widget _buildProfileHeader(Color backgroundColor) {
+  Widget _buildProfileHeader(bool isDarkMode) {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: _navigateToProfileDetail,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(20),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spacing20,
+          vertical: AppTheme.spacing24,
         ),
+        decoration: AppTheme.elevatedCard(isDark: isDarkMode),
         child: Row(
           children: [
             Expanded(
@@ -786,18 +782,19 @@ class _SettingsPageState extends State<SettingsPage>
                         "settings.profile_name_placeholder".tr(),
                     style: GoogleFonts.manrope(
                       fontSize: 22,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.getTextPrimaryColor(context),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppTheme.spacing4),
                   Text(
                     _userProfile?.email ??
                         "settings.profile_email_placeholder".tr(),
                     style: GoogleFonts.manrope(
                       fontSize: 14,
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: AppTheme.getTextSecondaryColor(context),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -805,7 +802,7 @@ class _SettingsPageState extends State<SettingsPage>
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppTheme.spacing16),
             GestureDetector(
               onTap: _isUploadingPhoto ? null : _changeProfilePhoto,
               child: Stack(
@@ -828,7 +825,10 @@ class _SettingsPageState extends State<SettingsPage>
                         : null,
                   ),
                   if (_isUploadingPhoto)
-                    const CircularProgressIndicator.adaptive(),
+                    CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                      strokeWidth: 2,
+                    ),
                 ],
               ),
             ),
@@ -841,21 +841,17 @@ class _SettingsPageState extends State<SettingsPage>
   Widget _buildSettingsCard(
     BuildContext context, {
     required List<Widget> children,
-    required Color backgroundColor,
+    required bool isDarkMode,
   }) {
-    final theme = Theme.of(context);
     return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: AppTheme.elevatedCard(isDark: isDarkMode),
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing8),
         physics: const NeverScrollableScrollPhysics(),
         shrinkWrap: true,
         itemBuilder: (context, index) => children[index],
         separatorBuilder: (context, index) =>
-            Divider(height: 1, indent: 68, color: theme.dividerColor),
+            AppTheme.divider(isDark: isDarkMode), 
         itemCount: children.length,
       ),
     );
@@ -872,13 +868,13 @@ class _SettingsPageState extends State<SettingsPage>
     final theme = Theme.of(context);
     final titleColor = isDestructive
         ? theme.colorScheme.error
-        : theme.textTheme.bodyLarge?.color;
-    final iconBgColor = iconColor.withOpacity(0.15);
+        : AppTheme.getTextPrimaryColor(context);
+    final iconBgColor = iconColor.withOpacity(0.1);
 
     return ListTile(
       onTap: onTap,
       leading: Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(AppTheme.spacing12),
         decoration: BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
         child: Icon(icon, size: 22, color: iconColor),
       ),
@@ -894,15 +890,21 @@ class _SettingsPageState extends State<SettingsPage>
           ? Text(
               subtitle,
               style: GoogleFonts.manrope(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: AppTheme.getTextSecondaryColor(context),
                 fontSize: 13,
               ),
             )
           : null,
       trailing: isDestructive
           ? null
-          : Icon(Icons.chevron_right_rounded, color: theme.colorScheme.outline),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          : Icon(
+              Icons.chevron_right_rounded,
+              color: AppTheme.getTextSecondaryColor(context).withOpacity(0.6),
+            ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacing20,
+        vertical: AppTheme.spacing8,
+      ),
     );
   }
 }

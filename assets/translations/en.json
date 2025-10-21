@@ -148,8 +148,8 @@
     "getting_location": "Getting location...",
     "address_not_found": "Address not found",
     "failed_to_get_location": "Failed to get location",
-    "in_radius": "Within office radius",
-    "out_radius": "Outside office radius",
+    "in_radius": "Within PPKD radius",
+    "out_radius": "Outside PPKD radius",
     "in_radius_ppkd": "Within PPKD radius",
     "out_radius_ppkd": "Outside PPKD radius",
     "map_type_normal": "Normal",
@@ -164,7 +164,7 @@
   },
   "attendance_stats": {
     "title": "Attendance Statistics",
-    "total_days": "Total {} working days",
+    "total_days": "Total {} training days",
     "this_month": "This Month",
     "present": "Present",
     "leave": "Leave",
@@ -198,7 +198,48 @@
     "delete_success": "Attendance history deleted successfully.",
     "delete_failed": "Failed to delete history: {}",
     "delete_button": "Delete",
-    "cancel_button": "Cancel"
+    "cancel_button": "Cancel",
+    "error": {
+      "location_service_disabled": "Location services are disabled. Please enable them.",
+      "location_permission_denied": "Location permission denied.",
+      "location_permission_denied_forever": "Location permission permanently denied, we cannot request permission.",
+      "generic_fallback": "An unexpected error occurred."
+    },
+    "snackbar": {
+      "check_in_success": "Check-in successful!",
+      "check_out_success": "Check-out successful!",
+      "leave_request_success": "Leave request submitted successfully."
+    },
+    "bot_check": {
+      "title": "Anti-Bot Verification",
+      "subtitle": "To continue, please answer the following question:",
+      "label": "Your Answer",
+      "submit_button": "Submit",
+      "error_wrong_answer": "Wrong answer, please try again.",
+      "q_number": "Write the number 9",
+      "q_day": "Write the name of today (e.g., Friday)",
+      "q_year": "Write the last 2 digits of this year"
+    },
+    "leave_dialog": {
+      "reason_hint": "Sick, family matters, etc.",
+      "error_reason_empty": "Reason cannot be empty.",
+      "submit_button": "Submit"
+    },
+    "reminder": {
+      "title": "Reminder Settings",
+      "enable_label": "Enable Daily Reminder",
+      "time_label": "Reminder Time",
+      "notification_title": "Don't Forget to Check In! ⏰",
+      "notification_body": "It's time to check in. Open the app now.",
+      "snackbar_enabled": "Reminder enabled for {time}."
+    },
+    "loading_overlay": {
+      "processing": "Processing...",
+      "wait_message": "Please wait a moment"
+    },
+    "stats": {
+      "error_title": "Failed to load statistics"
+    }
   },
   "history": {
     "title": "History",
@@ -231,7 +272,7 @@
     "report_title": "Attendance Report",
     "current_level": "Current Level",
     "attendance_progress": "Attendance Progress: {}",
-    "total_days_absen": "Total Working Days",
+    "total_days_absen": "Total Training Days",
     "total_present": "Total Present",
     "total_leave": "Total Leave",
     "total_alpha": "Total Absent",
@@ -355,7 +396,7 @@
     "subtitle_privacy": "Privacy Policy",
     "subtitle_terms": "Terms of Service",
     "subtitle_logout": "Sign out of account"
-},
+  },
   "privacy_policy": {
     "title1": "1. Information We Collect",
     "body1": "We collect information you provide directly to us, such as when you create an account, update your profile, and use our services. This information may include your name, email, and other relevant data.",
@@ -368,7 +409,7 @@
     "header_title": "Your Privacy Matters",
     "last_updated": "Last updated: {}",
     "questions_title": "Questions?",
-    "questions_body": "If you have any questions about our privacy policy, please contact us at {}",
+    "questions_body": "If you have any questions about our privacy policy, please contact us at",
     "contact_email": "ilhamsepriyadi0@gmail.com"
   },
   "terms_of_service": {

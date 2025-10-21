@@ -36,6 +36,11 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
   bool _isLoadingCheckIn = false;
   bool _isLoadingCheckOut = false;
 
+  // Konstanta untuk ukuran knob dan padding
+  static const double _knobSize = 52.0; // Sedikit lebih kecil
+  static const double _padding = AppTheme.spacing4;
+  static const double _buttonHeight = 60.0;
+
   void _onSwipeUpdate(
     DragUpdateDetails details,
     double maxExtent, {
@@ -45,17 +50,16 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
     if (isCheckIn && _isAnimatingCheckIn) return;
     if (!isCheckIn && _isAnimatingCheckOut) return;
 
-    const knobSize = 56.0;
-    const padding = 4.0;
-    final effectiveWidth = maxExtent - (2 * padding) - knobSize;
+    final effectiveWidth = maxExtent - (2 * _padding) - _knobSize;
+    if (effectiveWidth <= 0) return; // Hindari pembagian dengan nol
 
     double newProgress;
     if (isCheckIn) {
-      newProgress = (details.localPosition.dx - (knobSize / 2) - padding) /
+      newProgress = (details.localPosition.dx - (_knobSize / 2) - _padding) /
           effectiveWidth;
     } else {
       newProgress =
-          (maxExtent - details.localPosition.dx - (knobSize / 2) - padding) /
+          (maxExtent - details.localPosition.dx - (_knobSize / 2) - _padding) /
               effectiveWidth;
     }
 
@@ -96,7 +100,7 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
         Tween<double>(begin: currentProgress, end: target).animate(
       CurvedAnimation(
         parent: controller,
-        curve: isCompleted ? Curves.easeInOut : Curves.easeOut,
+        curve: isCompleted ? Curves.easeInOutCubic : Curves.easeOutCubic,
       ),
     );
     animation.addListener(() {
@@ -121,17 +125,18 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
           }
         });
 
-        Future.delayed(const Duration(milliseconds: 1500), () {
-          onCompleted();
+        // Simulasi loading
+        Future.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) {
+            onCompleted(); // Panggil callback setelah simulasi
             setState(() {
               if (isCheckIn) {
                 _isLoadingCheckIn = false;
-                _swipeProgressCheckIn = 0.0;
+                _swipeProgressCheckIn = 0.0; // Reset setelah onCompleted
                 _isAnimatingCheckIn = false;
               } else {
                 _isLoadingCheckOut = false;
-                _swipeProgressCheckOut = 0.0;
+                _swipeProgressCheckOut = 0.0; // Reset setelah onCompleted
                 _isAnimatingCheckOut = false;
               }
             });
@@ -167,7 +172,7 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
           isLoading: _isLoadingCheckIn,
           onSwipe: () => _onSwipeEnd(widget.onCheckIn, isCheckIn: true),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppTheme.spacing12), 
         _buildSlideButton(
           context,
           label: 'attendance_actions.swipe_to_check_out'.tr(),
@@ -179,7 +184,7 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
           isLoading: _isLoadingCheckOut,
           onSwipe: () => _onSwipeEnd(widget.onCheckOut, isCheckIn: false),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppTheme.spacing16), 
         _buildPermitButton(context),
       ],
     );
@@ -198,150 +203,125 @@ class _AttendanceActionsSectionState extends State<AttendanceActionsSection>
   }) {
     final theme = Theme.of(context);
     final isDarkMode = AppTheme.isDarkMode(context);
-    final maxExtent = MediaQuery.of(context).size.width - 32;
-    const knobSize = 56.0;
-    const padding = 4.0;
-    final effectiveWidth = maxExtent - (2 * padding) - knobSize;
-    final knobPosition = padding + (progress * effectiveWidth);
+    final double maxExtent = MediaQuery.of(context).size.width -
+        (2 * AppTheme.spacing16);
+    final effectiveWidth = maxExtent - (2 * _padding) - _knobSize;
+    final knobPosition = _padding + (progress * effectiveWidth);
+    final textColor = theme.colorScheme.onPrimary;
 
-    return IgnorePointer(
-      ignoring: isDisabled || widget.isSubmitting || isLoading,
-      child: GestureDetector(
-        onHorizontalDragUpdate: (details) =>
-            _onSwipeUpdate(details, maxExtent, isCheckIn: isCheckIn),
-        onHorizontalDragEnd: (details) => onSwipe(),
-        child: Container(
-          height: 60,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            color:
-                isDisabled ? theme.colorScheme.surfaceContainerHighest : color,
-            boxShadow: isDisabled
-                ? []
-                : [
-                    BoxShadow(
-                      color: color.withOpacity(0.25),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              AnimatedOpacity(
-                opacity: progress < 0.3 ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 150),
-                child: Text(
-                  label,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 17,
-                    color: isDisabled
-                        ? AppTheme.getTextDisabledColor(isDark: isDarkMode)
-                        : Colors.white,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-              ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 80),
-                curve: Curves.easeOut,
-                left: isCheckIn ? knobPosition : null,
-                right: isCheckIn ? null : knobPosition,
-                top: padding,
-                bottom: padding,
-                child: Container(
-                  width: knobSize,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: theme.colorScheme.surface,
-                    boxShadow: isDarkMode
-                        ? []
-                        : [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                  ),
-                  child: Center(
-                    child: isLoading
-                        ? SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(color),
-                            ),
-                          )
-                        : Icon(
-                            icon,
-                            color: AppTheme.getTextSecondaryColor(context),
-                            size: 20,
-                          ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPermitButton(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDisabled = widget.isSubmitting || !widget.canCheckIn;
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        color: theme.cardColor,
-        border: Border.all(
-          color: isDisabled
-              ? theme.colorScheme.outline
-              : theme.colorScheme.primary.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: isDisabled ? null : widget.onAjukanIzin,
-          borderRadius: BorderRadius.circular(30),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return LayoutBuilder(builder: (context, constraints) {
+      final double layoutWidth = constraints.maxWidth;
+      return IgnorePointer(
+        ignoring: isDisabled || widget.isSubmitting || isLoading,
+        child: GestureDetector(
+          onHorizontalDragUpdate: (details) =>
+              _onSwipeUpdate(details, layoutWidth, isCheckIn: isCheckIn),
+          onHorizontalDragEnd: (details) => onSwipe(),
+          child: Container(
+            height: _buttonHeight,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppTheme.radius28),
+              color: isDisabled
+                  ? theme.colorScheme.surfaceContainerHighest
+                  : color,
+              boxShadow: isDisabled || isDarkMode
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: color.withOpacity(0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Icon(
-                  Icons.calendar_today_rounded,
-                  size: 18,
-                  color: isDisabled
-                      ? AppTheme.getTextDisabledColor(
-                          isDark: AppTheme.isDarkMode(context),
-                        )
-                      : theme.colorScheme.primary,
+                AnimatedOpacity(
+                  opacity: progress < 0.3 ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 150),
+                  child: Text(
+                    label,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: isDisabled
+                          ? AppTheme.getTextDisabledColor(isDark: isDarkMode)
+                          : textColor,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'attendance_actions.request_leave'.tr(),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 17,
-                    letterSpacing: -0.4,
-                    color: isDisabled
-                        ? AppTheme.getTextDisabledColor(
-                            isDark: AppTheme.isDarkMode(context),
-                          )
-                        : theme.colorScheme.primary,
+                AnimatedPositioned(
+                  duration: Duration.zero,
+                  curve: Curves.linear,
+                  left: isCheckIn ? knobPosition : null,
+                  right: isCheckIn ? null : knobPosition,
+                  top: _padding,
+                  bottom: _padding,
+                  child: Container(
+                    width: _knobSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppTheme.getSurfaceColor(context),
+                      boxShadow: isDarkMode
+                          ? []
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                    ),
+                    child: Center(
+                      child: isLoading
+                          ? SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(color),
+                              ),
+                            )
+                          : Icon(
+                              icon,
+                              color: AppTheme.getTextSecondaryColor(context),
+                              size: 20,
+                            ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildPermitButton(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDisabled = widget.isSubmitting || !widget.canCheckIn;
+    return SizedBox(
+      height: _buttonHeight,
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: isDisabled ? null : widget.onAjukanIzin,
+        icon: const Icon(
+          Icons.calendar_today_rounded,
+          size: 18,
+        ),
+        label: Text(
+          'attendance_actions.request_leave'.tr(),
+        ),
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radius28),
+          ),
+        ).copyWith(
+          padding: WidgetStateProperty.all(EdgeInsets.zero),
         ),
       ),
     );

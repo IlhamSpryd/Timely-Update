@@ -148,8 +148,8 @@
     "getting_location": "위치 정보를 가져오는 중...",
     "address_not_found": "주소를 찾을 수 없습니다",
     "failed_to_get_location": "위치 정보를 가져오지 못했습니다",
-    "in_radius": "사무실 반경 내",
-    "out_radius": "사무실 반경 외",
+    "in_radius": "PPKD 반경 내",
+    "out_radius": "PPKD 반경 외",
     "in_radius_ppkd": "PPKD 반경 내",
     "out_radius_ppkd": "PPKD 반경 외",
     "map_type_normal": "일반",
@@ -164,7 +164,7 @@
   },
   "attendance_stats": {
     "title": "출석 통계",
-    "total_days": "총 {} 근무일",
+    "total_days": "총 {} 교육일",
     "this_month": "이번 달",
     "present": "출석",
     "leave": "휴가",
@@ -198,7 +198,48 @@
     "delete_success": "출석 기록이 성공적으로 삭제되었습니다.",
     "delete_failed": "기록 삭제 실패: {}",
     "delete_button": "삭제",
-    "cancel_button": "취소"
+    "cancel_button": "취소",
+    "error": {
+      "location_service_disabled": "위치 서비스가 비활성화되었습니다. 활성화해주세요.",
+      "location_permission_denied": "위치 권한이 거부되었습니다.",
+      "location_permission_denied_forever": "위치 권한이 영구적으로 거부되어 권한을 요청할 수 없습니다.",
+      "generic_fallback": "예기치 않은 오류가 발생했습니다."
+    },
+    "snackbar": {
+      "check_in_success": "출근 기록 완료!",
+      "check_out_success": "퇴근 기록 완료!",
+      "leave_request_success": "휴가 요청이 성공적으로 제출되었습니다."
+    },
+    "bot_check": {
+      "title": "봇 방지 인증",
+      "subtitle": "계속하려면 다음 질문에 답해주세요:",
+      "label": "답변",
+      "submit_button": "제출",
+      "error_wrong_answer": "답변이 틀렸습니다. 다시 시도해주세요.",
+      "q_number": "숫자 9를 쓰세요",
+      "q_day": "오늘 요일 이름을 쓰세요 (예: 금요일)",
+      "q_year": "올해 연도의 마지막 2자리를 쓰세요"
+    },
+    "leave_dialog": {
+      "reason_hint": "질병, 가족 행사 등",
+      "error_reason_empty": "사유를 비워둘 수 없습니다.",
+      "submit_button": "제출"
+    },
+    "reminder": {
+      "title": "알림 설정",
+      "enable_label": "매일 알림 활성화",
+      "time_label": "알림 시간",
+      "notification_title": "출근 잊지 마세요! ⏰",
+      "notification_body": "출근할 시간입니다. 앱을 열어주세요.",
+      "snackbar_enabled": "{time}에 알림이 설정되었습니다."
+    },
+    "loading_overlay": {
+      "processing": "처리 중...",
+      "wait_message": "잠시만 기다려주세요"
+    },
+    "stats": {
+      "error_title": "통계 로드 실패"
+    }
   },
   "history": {
     "title": "기록",
@@ -231,7 +272,7 @@
     "report_title": "출석 보고서",
     "current_level": "현재 레벨",
     "attendance_progress": "출석 진행률: {}",
-    "total_days_absen": "총 근무일",
+    "total_days_absen": "총 교육일",
     "total_present": "총 출석일",
     "total_leave": "총 휴가일",
     "total_alpha": "총 결석일",
@@ -355,11 +396,11 @@
     "subtitle_privacy": "개인정보 처리방침",
     "subtitle_terms": "서비스 이용 약관",
     "subtitle_logout": "계정에서 로그아웃"
-},
+  },
   "privacy_policy": {
     "title1": "1. 수집하는 정보",
     "body1": "당사는 귀하가 계정을 생성하거나 프로필을 업데이트하고 서비스를 이용할 때 직접 제공하는 정보를 수집합니다. 이 정보에는 이름, 이메일 및 기타 관련 데이터가 포함될 수 있습니다.",
-    "body2": "2. 정보의 사용",
+    "title2": "2. 정보의 사용",  
     "body2": "귀하의 정보는 당사 서비스를 제공, 유지 및 개선하는 데 사용됩니다. 또한 이 정보를 사용하여 계정과 관련된 중요한 알림을 보내는 등 귀하와 소통할 수 있습니다.",
     "title3": "3. 데이터 보안",
     "body3": "당사는 귀하의 정보를 분실, 도난, 오용 및 무단 접근, 공개, 변경 및 파기로부터 보호하기 위해 합리적인 조치를 취합니다.",
@@ -368,7 +409,7 @@
     "header_title": "개인정보 보호",
     "last_updated": "최종 업데이트: {}",
     "questions_title": "질문이 있으신가요?",
-    "questions_body": "개인정보 처리방침에 대해 질문이 있으시면 {}으로 문의해주세요.",
+    "questions_body": "개인정보 처리방침에 대해 질문이 있으시면 으로 문의해주세요.",
     "contact_email": "ilhamsepriyadi0@gmail.com"
   },
   "terms_of_service": {

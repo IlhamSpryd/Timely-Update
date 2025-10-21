@@ -12,6 +12,7 @@ import 'package:timely/api/history_api.dart';
 import 'package:timely/models/absen_stats.dart';
 import 'package:timely/models/historyabsen_model.dart';
 import 'package:timely/services/history_service.dart';
+import 'package:timely/utils/app_theme.dart'; // Import AppTheme
 import 'package:timely/views/all_users_page.dart';
 
 enum ChartType { pie, bar }
@@ -213,14 +214,11 @@ class _StatisticsPageState extends State<StatisticsPage>
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (!mounted) return;
+    // Gunakan SnackBar kustom dari AppTheme
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
+      isError
+          ? AppTheme.errorSnackBar(message)
+          : AppTheme.successSnackBar(message),
     );
   }
 
@@ -295,24 +293,21 @@ class _StatisticsPageState extends State<StatisticsPage>
   Widget build(BuildContext context) {
     super.build(context);
     final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-    final scaffoldBackgroundColor =
-        isDarkMode ? Colors.black : const Color(0xFFF3F4F6);
-    final cardBackgroundColor =
-        isDarkMode ? const Color(0xFF1C1C1E) : Colors.white;
+    final isDarkMode = AppTheme.isDarkMode(context);
+    final scaffoldBackgroundColor = AppTheme.getBackgroundColor(context);
 
     return Scaffold(
       backgroundColor: scaffoldBackgroundColor,
       body: _isLoading
-          ? _buildLoadingView()
+          ? _buildLoadingView(isDarkMode)
           : _errorMessage.isNotEmpty
-              ? _buildErrorView()
+              ? _buildErrorView(isDarkMode)
               : _statsData == null || _statsData!.data == null
-                  ? _buildEmptyView()
+                  ? _buildEmptyView(isDarkMode)
                   : RefreshIndicator(
                       onRefresh: _loadData,
                       color: theme.colorScheme.primary,
-                      backgroundColor: cardBackgroundColor,
+                      backgroundColor: AppTheme.getSurfaceColor(context),
                       child: FadeTransition(
                         opacity: _fadeAnimation,
                         child: CustomScrollView(
@@ -325,24 +320,27 @@ class _StatisticsPageState extends State<StatisticsPage>
                               expandedHeight: 120.0,
                               flexibleSpace: FlexibleSpaceBar(
                                 titlePadding: const EdgeInsets.only(
-                                  left: 20,
-                                  bottom: 16,
+                                  left: AppTheme.spacing20,
+                                  bottom: AppTheme.spacing16,
                                 ),
                                 title: Text(
                                   "stats.title".tr(),
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontWeight: FontWeight.bold,
+                                  style: GoogleFonts.manrope(
+                                    // FONT
+                                    fontWeight: FontWeight.bold, // WEIGHT
                                     color: theme.textTheme.titleLarge?.color,
                                   ),
                                 ),
                                 background:
                                     Container(color: scaffoldBackgroundColor),
                               ),
-                              // --- AWAL PERUBAHAN ---
                               actions: [
                                 IconButton(
-                                  icon:
-                                      const Icon(Icons.people_outline_rounded),
+                                  icon: Icon(
+                                    Icons.people_outline_rounded,
+                                    color: AppTheme.getTextPrimaryColor(
+                                        context), // WARNA
+                                  ),
                                   onPressed: () {
                                     Navigator.push(
                                       context,
@@ -352,26 +350,32 @@ class _StatisticsPageState extends State<StatisticsPage>
                                       ),
                                     );
                                   },
-                                  tooltip: 'Lihat Semua Pengguna',
+                                  tooltip: 'all_users.title'.tr(), // LOKALISASI
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(
+                                    width: AppTheme.spacing8), // SPACING
                               ],
-                              // --- AKHIR PERUBAHAN ---
                             ),
                             SliverList(
                               delegate: SliverChildListDelegate([
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0),
+                                      horizontal:
+                                          AppTheme.spacing16), // SPACING
                                   child: Column(
                                     children: [
-                                      _buildGamificationCard(
-                                          cardBackgroundColor),
-                                      const SizedBox(height: 20),
-                                      _buildSummaryCard(cardBackgroundColor),
-                                      const SizedBox(height: 20),
-                                      _buildExportCard(cardBackgroundColor),
-                                      const SizedBox(height: 24),
+                                      _buildGamificationCard(isDarkMode),
+                                      const SizedBox(
+                                          height:
+                                              AppTheme.spacing16), // SPACING
+                                      _buildSummaryCard(isDarkMode),
+                                      const SizedBox(
+                                          height:
+                                              AppTheme.spacing16), // SPACING
+                                      _buildExportCard(isDarkMode),
+                                      const SizedBox(
+                                          height:
+                                              AppTheme.spacing24), // SPACING
                                     ],
                                   ),
                                 ),
@@ -384,21 +388,17 @@ class _StatisticsPageState extends State<StatisticsPage>
     );
   }
 
-  Widget _buildGamificationCard(Color cardColor) {
+  Widget _buildGamificationCard(bool isDarkMode) {
     final data = _calculateGamificationData();
     final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
     final totalMasuk = _statsData?.data?.totalMasuk ?? 0;
     final totalIzin = _statsData?.data?.totalIzin ?? 0;
     final totalAlpha = _calculateTotalAlpha();
     final hasChartData = (totalMasuk + totalIzin + totalAlpha) > 0;
 
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
+      padding: const EdgeInsets.all(AppTheme.spacing20), // SPACING
+      decoration: AppTheme.elevatedCard(isDark: isDarkMode), // DEKORASI
       child: Column(
         children: [
           // Level Section
@@ -426,9 +426,10 @@ class _StatisticsPageState extends State<StatisticsPage>
                     Center(
                       child: Text(
                         '${data.level}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.manrope(
+                          // FONT
                           fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700, // WEIGHT
                           color: theme.colorScheme.onPrimary,
                         ),
                       ),
@@ -436,39 +437,43 @@ class _StatisticsPageState extends State<StatisticsPage>
                   ],
                 ),
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: AppTheme.spacing20), // SPACING
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'stats.level_progress_title'.tr(),
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.manrope(
+                        // FONT
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600, // WEIGHT
+                        color: AppTheme.getTextPrimaryColor(context), // WARNA
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: AppTheme.spacing4), // SPACING
                     Text(
                       data.progressMessage,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.manrope(
+                        // FONT
                         fontSize: 14,
-                        color: Colors.grey.shade500,
+                        color: AppTheme.getTextSecondaryColor(context), // WARNA
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppTheme.spacing8), // SPACING
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: AppTheme.spacing12, // SPACING
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.primary.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius:
+                            BorderRadius.circular(AppTheme.radius8), // RADIUS
                         border: Border.all(
                           color: theme.colorScheme.primary.withOpacity(0.3),
                           width: 1,
@@ -476,7 +481,8 @@ class _StatisticsPageState extends State<StatisticsPage>
                       ),
                       child: Text(
                         '${data.xp} XP',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.manrope(
+                          // FONT
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: theme.colorScheme.primary,
@@ -491,12 +497,9 @@ class _StatisticsPageState extends State<StatisticsPage>
 
           // Chart Section
           if (hasChartData) ...[
-            const SizedBox(height: 20),
-            Divider(
-              color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
-              thickness: 1,
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: AppTheme.spacing20), // SPACING
+            AppTheme.divider(isDark: isDarkMode), // DIVIDER
+            const SizedBox(height: AppTheme.spacing20), // SPACING
 
             // Chart Type Selector
             SegmentedButton<ChartType>(
@@ -505,7 +508,7 @@ class _StatisticsPageState extends State<StatisticsPage>
                   value: ChartType.pie,
                   label: Text(
                     'stats.pie_chart'.tr(),
-                    style: const TextStyle(fontSize: 12),
+                    style: GoogleFonts.manrope(fontSize: 12), // FONT
                   ),
                   icon: const Icon(Icons.pie_chart_outline_rounded, size: 18),
                 ),
@@ -513,7 +516,7 @@ class _StatisticsPageState extends State<StatisticsPage>
                   value: ChartType.bar,
                   label: Text(
                     'stats.bar_chart'.tr(),
-                    style: const TextStyle(fontSize: 12),
+                    style: GoogleFonts.manrope(fontSize: 12), // FONT
                   ),
                   icon: const Icon(Icons.bar_chart_rounded, size: 18),
                 ),
@@ -523,15 +526,15 @@ class _StatisticsPageState extends State<StatisticsPage>
                   setState(() => _selectedChartType = newSelection.first),
               style: SegmentedButton.styleFrom(
                 backgroundColor:
-                    isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+                    theme.colorScheme.surfaceContainerHighest, // WARNA
                 foregroundColor:
-                    isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                    AppTheme.getTextSecondaryColor(context), // WARNA
                 selectedForegroundColor: theme.colorScheme.onPrimary,
                 selectedBackgroundColor: theme.colorScheme.primary,
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppTheme.spacing20), // SPACING
 
             // Chart Display
             AnimatedSwitcher(
@@ -545,8 +548,8 @@ class _StatisticsPageState extends State<StatisticsPage>
               child: Container(
                 key: ValueKey<ChartType>(_selectedChartType),
                 child: _selectedChartType == ChartType.pie
-                    ? _buildModernPieChart()
-                    : _buildModernBarChart(),
+                    ? _buildModernPieChart(isDarkMode)
+                    : _buildModernBarChart(isDarkMode),
               ),
             ),
           ],
@@ -555,8 +558,8 @@ class _StatisticsPageState extends State<StatisticsPage>
     );
   }
 
-  Widget _buildModernPieChart() {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildModernPieChart(bool isDarkMode) {
+    final theme = Theme.of(context);
     final totalMasuk = _statsData!.data!.totalMasuk ?? 0;
     final totalIzin = _statsData!.data!.totalIzin ?? 0;
     final totalAlpha = _calculateTotalAlpha();
@@ -566,10 +569,18 @@ class _StatisticsPageState extends State<StatisticsPage>
       _ChartData(
         'home.present_label'.tr(),
         totalMasuk,
-        const Color(0xFF10B981),
+        AppTheme.getStatusColor('present'), // WARNA TEMA
       ),
-      _ChartData('home.leave_label'.tr(), totalIzin, const Color(0xFFF59E0B)),
-      _ChartData('home.alpha_label'.tr(), totalAlpha, const Color(0xFFEF4444)),
+      _ChartData(
+        'home.leave_label'.tr(),
+        totalIzin,
+        AppTheme.getStatusColor('leave'), // WARNA TEMA
+      ),
+      _ChartData(
+        'home.alpha_label'.tr(),
+        totalAlpha,
+        AppTheme.getStatusColor('absent'), // WARNA TEMA
+      ),
     ].where((item) => item.value > 0).toList();
 
     return Column(
@@ -586,8 +597,7 @@ class _StatisticsPageState extends State<StatisticsPage>
                 pointColorMapper: (_ChartData data, _) => data.color,
                 innerRadius: '65%',
                 radius: '90%',
-                strokeColor:
-                    isDarkMode ? const Color(0xFF1C1C1E) : Colors.white,
+                strokeColor: AppTheme.getBackgroundColor(context), // WARNA TEMA
                 strokeWidth: 3,
                 dataLabelMapper: (_ChartData data, _) => '${data.value}',
                 dataLabelSettings: DataLabelSettings(
@@ -597,14 +607,14 @@ class _StatisticsPageState extends State<StatisticsPage>
                     type: ConnectorType.curve,
                     width: 2,
                     length: '15%',
-                    color: isDarkMode
-                        ? Colors.grey.shade600
-                        : Colors.grey.shade400,
+                    color: AppTheme.getTextSecondaryColor(context)
+                        .withOpacity(0.5), // WARNA TEMA
                   ),
-                  textStyle: GoogleFonts.plusJakartaSans(
+                  textStyle: GoogleFonts.manrope(
+                    // FONT
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black87,
+                    color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
                   ),
                   labelIntersectAction: LabelIntersectAction.shift,
                   useSeriesColor: false,
@@ -617,12 +627,12 @@ class _StatisticsPageState extends State<StatisticsPage>
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppTheme.spacing16), // SPACING
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppTheme.spacing16), // SPACING
           decoration: BoxDecoration(
-            color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(12),
+            color: theme.colorScheme.surfaceContainerHighest, // WARNA TEMA
+            borderRadius: BorderRadius.circular(AppTheme.radius12), // RADIUS
           ),
           child: Wrap(
             spacing: 20,
@@ -641,20 +651,23 @@ class _StatisticsPageState extends State<StatisticsPage>
                       shape: BoxShape.circle,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppTheme.spacing8), // SPACING
                   Flexible(
                     child: Text(
                       '${item.label}: ',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.manrope(
+                        // FONT
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
+                        color: AppTheme.getTextPrimaryColor(context), // WARNA
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Text(
                     '$percentage%',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.manrope(
+                      // FONT
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: item.color,
@@ -669,8 +682,8 @@ class _StatisticsPageState extends State<StatisticsPage>
     );
   }
 
-  Widget _buildModernBarChart() {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildModernBarChart(bool isDarkMode) {
+    final theme = Theme.of(context);
     final totalMasuk = _statsData!.data!.totalMasuk ?? 0;
     final totalIzin = _statsData!.data!.totalIzin ?? 0;
     final totalAlpha = _calculateTotalAlpha();
@@ -679,18 +692,26 @@ class _StatisticsPageState extends State<StatisticsPage>
       _ChartData(
         'home.present_label'.tr(),
         totalMasuk,
-        const Color(0xFF10B981),
+        AppTheme.getStatusColor('present'), // WARNA TEMA
       ),
-      _ChartData('home.leave_label'.tr(), totalIzin, const Color(0xFFF59E0B)),
-      _ChartData('home.alpha_label'.tr(), totalAlpha, const Color(0xFFEF4444)),
+      _ChartData(
+        'home.leave_label'.tr(),
+        totalIzin,
+        AppTheme.getStatusColor('leave'), // WARNA TEMA
+      ),
+      _ChartData(
+        'home.alpha_label'.tr(),
+        totalAlpha,
+        AppTheme.getStatusColor('absent'), // WARNA TEMA
+      ),
     ];
 
     return Container(
       height: 280,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(AppTheme.spacing12), // SPACING
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
+        color: theme.colorScheme.surfaceContainerHighest, // WARNA TEMA
+        borderRadius: BorderRadius.circular(AppTheme.radius12), // RADIUS
       ),
       child: SfCartesianChart(
         plotAreaBorderWidth: 0,
@@ -698,8 +719,9 @@ class _StatisticsPageState extends State<StatisticsPage>
           majorGridLines: const MajorGridLines(width: 0),
           axisLine: const AxisLine(width: 0),
           majorTickLines: const MajorTickLines(width: 0),
-          labelStyle: GoogleFonts.plusJakartaSans(
-            color: isDarkMode ? Colors.white70 : Colors.black54,
+          labelStyle: GoogleFonts.manrope(
+            // FONT
+            color: AppTheme.getTextSecondaryColor(context), // WARNA TEMA
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
@@ -707,13 +729,14 @@ class _StatisticsPageState extends State<StatisticsPage>
         primaryYAxis: NumericAxis(
           majorGridLines: MajorGridLines(
             width: 1,
-            color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
+            color: theme.colorScheme.outline.withOpacity(0.3), // WARNA TEMA
             dashArray: const <double>[5, 5],
           ),
           axisLine: const AxisLine(width: 0),
           majorTickLines: const MajorTickLines(width: 0),
-          labelStyle: GoogleFonts.plusJakartaSans(
-            color: isDarkMode ? Colors.white70 : Colors.black54,
+          labelStyle: GoogleFonts.manrope(
+            // FONT
+            color: AppTheme.getTextSecondaryColor(context), // WARNA TEMA
             fontSize: 11,
           ),
         ),
@@ -724,8 +747,8 @@ class _StatisticsPageState extends State<StatisticsPage>
             yValueMapper: (_ChartData data, _) => data.value,
             pointColorMapper: (_ChartData data, _) => data.color,
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(8),
-              topRight: Radius.circular(8),
+              topLeft: Radius.circular(AppTheme.radius8), // RADIUS
+              topRight: Radius.circular(AppTheme.radius8), // RADIUS
             ),
             width: 0.6,
             spacing: 0.15,
@@ -733,8 +756,9 @@ class _StatisticsPageState extends State<StatisticsPage>
             dataLabelSettings: DataLabelSettings(
               isVisible: true,
               labelAlignment: ChartDataLabelAlignment.top,
-              textStyle: GoogleFonts.plusJakartaSans(
-                color: isDarkMode ? Colors.white : Colors.black87,
+              textStyle: GoogleFonts.manrope(
+                // FONT
+                color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -745,46 +769,46 @@ class _StatisticsPageState extends State<StatisticsPage>
     );
   }
 
-  Widget _buildSummaryCard(Color cardColor) {
+  Widget _buildSummaryCard(bool isDarkMode) {
     final totalAbsen = _statsData!.data!.totalAbsen ?? 0;
     final totalMasuk = _statsData!.data!.totalMasuk ?? 0;
     final totalIzin = _statsData!.data!.totalIzin ?? 0;
     final totalAlpha = _calculateTotalAlpha();
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppTheme.spacing12, // SPACING
+        horizontal: AppTheme.spacing20, // SPACING
       ),
+      decoration: AppTheme.elevatedCard(isDark: isDarkMode), // DEKORASI
       child: Column(
         children: [
           _buildStatRow(
             Icons.calendar_today_rounded,
             'stats.total_days_absen'.tr(),
             '$totalAbsen',
-            Colors.blue,
+            AppTheme.getStatusColor('info'), // WARNA TEMA
           ),
-          _buildDivider(),
+          _buildDivider(isDarkMode),
           _buildStatRow(
             Icons.check_circle_outline_rounded,
             'stats.total_present'.tr(),
             '$totalMasuk',
-            Colors.green,
+            AppTheme.getStatusColor('present'), // WARNA TEMA
           ),
-          _buildDivider(),
+          _buildDivider(isDarkMode),
           _buildStatRow(
             Icons.info_outline_rounded,
             'stats.total_leave'.tr(),
             '$totalIzin',
-            Colors.orange,
+            AppTheme.getStatusColor('leave'), // WARNA TEMA
           ),
-          _buildDivider(),
+          _buildDivider(isDarkMode),
           _buildStatRow(
             Icons.highlight_off_rounded,
             'stats.total_alpha'.tr(),
             '$totalAlpha',
-            Colors.red,
+            AppTheme.getStatusColor('absent'), // WARNA TEMA
           ),
         ],
       ),
@@ -792,27 +816,30 @@ class _StatisticsPageState extends State<StatisticsPage>
   }
 
   Widget _buildStatRow(IconData icon, String title, String value, Color color) {
-    final iconBgColor = color.withOpacity(0.15);
+    final iconBgColor = color.withOpacity(0.1); // Penyesuaian opacity
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      padding:
+          const EdgeInsets.symmetric(vertical: AppTheme.spacing16), // SPACING
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(AppTheme.spacing12), // SPACING
             decoration: BoxDecoration(
               color: iconBgColor,
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppTheme.spacing16), // SPACING
           Expanded(
             child: Text(
               title,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.manrope(
+                // FONT
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
+                color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -820,9 +847,11 @@ class _StatisticsPageState extends State<StatisticsPage>
           ),
           Text(
             value,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.manrope(
+              // FONT
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
             ),
           ),
         ],
@@ -830,30 +859,30 @@ class _StatisticsPageState extends State<StatisticsPage>
     );
   }
 
-  Widget _buildExportCard(Color cardColor) {
-    final iconBgColor = Colors.red.withOpacity(0.15);
+  Widget _buildExportCard(bool isDarkMode) {
+    final color = AppTheme.getStatusColor('absent'); // WARNA TEMA
+    final iconBgColor = color.withOpacity(0.1);
 
     return Container(
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: AppTheme.elevatedCard(isDark: isDarkMode), // DEKORASI
       child: ListTile(
         onTap: _isExporting ? null : _exportToPdf,
         leading: Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(AppTheme.spacing12), // SPACING
           decoration: BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
-          child: const Icon(
+          child: Icon(
             Icons.picture_as_pdf_outlined,
             size: 22,
-            color: Colors.red,
+            color: color,
           ),
         ),
         title: Text(
           'stats.export_to_pdf'.tr(),
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.manrope(
+            // FONT
             fontWeight: FontWeight.w600,
             fontSize: 16,
+            color: AppTheme.getTextPrimaryColor(context), // WARNA TEMA
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -864,102 +893,52 @@ class _StatisticsPageState extends State<StatisticsPage>
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Divider(
-      height: 1,
-      indent: 54,
-      color: Theme.of(context).brightness == Brightness.dark
-          ? Colors.grey.shade800
-          : Colors.grey.shade200,
-    );
-  }
-
-  Widget _buildLoadingView() =>
-      const Center(child: CircularProgressIndicator.adaptive());
-
-  Widget _buildErrorView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.cloud_off_rounded, size: 80, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              'history.error_title'.tr(),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            : Icon(
+                Icons.chevron_right_rounded,
+                color: AppTheme.getTextSecondaryColor(context), // WARNA TEMA
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                color: Colors.grey.shade500,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh_rounded),
-              label: Text('history.try_again'.tr()),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ],
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spacing20, // SPACING
+          vertical: AppTheme.spacing12, // SPACING
         ),
       ),
     );
   }
 
-  Widget _buildEmptyView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.analytics_outlined, size: 80, color: Colors.grey),
-            const SizedBox(height: 16),
-            Text(
-              'stats.no_data_title'.tr(),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'stats.no_data_subtitle'.tr(),
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                color: Colors.grey.shade500,
-              ),
-            ),
-          ],
-        ),
+  Widget _buildDivider(bool isDarkMode) {
+    return Padding(
+      padding: const EdgeInsets.only(
+          left: 58.0), // 22(ikon)+12(padding)+16(spasi) ~ 50
+      child: AppTheme.divider(isDark: isDarkMode), // DIVIDER TEMA
+    );
+  }
+
+  Widget _buildLoadingView(bool isDarkMode) =>
+      AppTheme.loadingIndicator(isDark: isDarkMode); // WIDGET TEMA
+
+  Widget _buildErrorView(bool isDarkMode) {
+    return AppTheme.emptyState(
+      // WIDGET TEMA
+      title: 'history.error_title'.tr(),
+      message: _errorMessage,
+      icon: Icons.cloud_off_rounded,
+      isDark: isDarkMode,
+      action: ElevatedButton.icon(
+        onPressed: _loadData,
+        icon: const Icon(Icons.refresh_rounded, size: 18),
+        label: Text('history.try_again'.tr()),
+        style: Theme.of(context).elevatedButtonTheme.style, // STYLE TEMA
       ),
+    );
+  }
+
+  Widget _buildEmptyView(bool isDarkMode) {
+    return AppTheme.emptyState(
+      // WIDGET TEMA
+      title: 'stats.no_data_title'.tr(),
+      message: 'stats.no_data_subtitle'.tr(),
+      icon: Icons.analytics_outlined,
+      isDark: isDarkMode,
     );
   }
 }
@@ -986,6 +965,9 @@ class _GamificationData {
     required this.levelProgress,
   });
 }
+
+// --- PDF Generation Code (No UI changes needed) ---
+// (Kode di bawah ini tidak diubah karena merupakan logika PDF, bukan UI Flutter)
 
 pw.Widget _buildPdfStatRow(String label, int value) {
   return pw.Padding(

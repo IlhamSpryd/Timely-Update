@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
+
+// Hapus import 'dart:ui'; karena BackdropFilter tidak digunakan lagi
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,7 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
 
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 300),
     )..forward();
 
     _fadeAnimation = CurvedAnimation(
@@ -81,12 +82,16 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
 
   String _getMotivationalQuote(BuildContext context) {
     try {
-      final List<dynamic> quotes = json.decode('quotes'.tr());
+      // Pastikan string JSON valid sebelum di-decode
+      final String quotesJsonString = 'quotes'.tr();
+      final List<dynamic> quotes = json.decode(quotesJsonString);
       if (quotes.isEmpty) {
         return 'quotes_fallback_empty'.tr();
       }
       return quotes[_now.day % quotes.length].toString();
     } catch (e) {
+      // Jika json tidak valid atau error lain
+      print("Error decoding quotes JSON: $e"); // Tambahkan log untuk debug
       return 'quotes_fallback_error'.tr();
     }
   }
@@ -96,19 +101,35 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
     final theme = Theme.of(context);
     final isDarkMode = AppTheme.isDarkMode(context);
 
-    // Define the solid background color based on the theme
-    final solidBackgroundColor = isDarkMode
-        ? AppTheme.getSurfaceColor(context)
-        : theme.colorScheme.primary;
+    // 1. Gunakan warna background halaman
+    final pageBackgroundColor = AppTheme.getBackgroundColor(context);
 
-    Widget flexibleSpaceContent = Container(
-      // Use solid color instead of gradient
-      color: solidBackgroundColor,
-      child: LayoutBuilder(
+    // 3. Sesuaikan SystemUiOverlayStyle
+    final systemOverlayStyle = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent, // Selalu transparan
+      statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness:
+          isDarkMode ? Brightness.light : Brightness.dark,
+    );
+
+    return SliverAppBar(
+      expandedHeight: 220.0,
+      pinned: true,
+      elevation: 0,
+      stretch: true,
+      onStretchTrigger: () async {
+        HapticFeedback.lightImpact();
+      },
+      stretchTriggerOffset: 80.0,
+      backgroundColor: pageBackgroundColor, // Gunakan background halaman
+      // 4. Hapus BackdropFilter
+      flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
           final expandRatio = (constraints.biggest.height - kToolbarHeight) /
-              (240.0 - kToolbarHeight);
-          final isCollapsed = expandRatio < 0.3;
+              (220.0 - kToolbarHeight);
+          // Tentukan apakah collapsed sedikit lebih awal untuk transisi
+          final isCollapsed = expandRatio < 0.4;
 
           return FlexibleSpaceBar(
             centerTitle: false,
@@ -118,17 +139,21 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
               StretchMode.fadeTitle,
             ],
             title: AnimatedOpacity(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut, // Ganti kurva agar lebih halus
               opacity: isCollapsed ? 1.0 : 0.0,
               child: _buildCollapsedHeader(context, isCollapsed),
             ),
             background: Stack(
               fit: StackFit.expand,
               children: [
+                // Gunakan background halaman di sini juga
+                Container(color: pageBackgroundColor),
+                // Opacity untuk header expanded
                 AnimatedOpacity(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
+                  duration:
+                      const Duration(milliseconds: 300), // Sedikit lebih lama
+                  curve: Curves.easeIn, // Ganti kurva
                   opacity: isCollapsed ? 0.0 : 1.0,
                   child: _buildExpandedHeader(context),
                 ),
@@ -137,42 +162,24 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
           );
         },
       ),
-    );
-
-    return SliverAppBar(
-      expandedHeight: 240.0,
-      pinned: true,
-      elevation: 0,
-      stretch: true,
-      onStretchTrigger: () async {
-        HapticFeedback.lightImpact();
-      },
-      stretchTriggerOffset: 80.0,
-      backgroundColor:
-          solidBackgroundColor, // Set a consistent background color
-      flexibleSpace: isDarkMode
-          ? ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: flexibleSpaceContent,
-              ),
-            )
-          : flexibleSpaceContent,
-      systemOverlayStyle:
-          isDarkMode ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.light,
+      systemOverlayStyle: systemOverlayStyle, // Terapkan style overlay
     );
   }
 
   Widget _buildCollapsedHeader(BuildContext context, bool isCollapsed) {
     final theme = Theme.of(context);
     final isDarkMode = AppTheme.isDarkMode(context);
-    final solidBackgroundColor = isDarkMode
-        ? AppTheme.getSurfaceColor(context)
-        : theme.colorScheme.primary;
+    // Gunakan background halaman
+    final pageBackgroundColor = AppTheme.getBackgroundColor(context);
+    // Tentukan warna teks primer berdasarkan tema
+    final primaryTextColor = AppTheme.getTextPrimaryColor(context);
+    // Tentukan warna teks sekunder berdasarkan tema
+    final secondaryTextColor = AppTheme.getTextSecondaryColor(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      color: solidBackgroundColor, // Use solid color here too
+      // Padding tetap
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacing16),
+      color: pageBackgroundColor, // Gunakan background halaman
       child: SafeArea(
         bottom: false,
         child: SizedBox(
@@ -181,29 +188,41 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
             children: [
               GestureDetector(
                 onTap: widget.onProfileTap,
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  backgroundImage: widget.userAvatarUrl != null &&
-                          widget.userAvatarUrl!.isNotEmpty
-                      ? NetworkImage(widget.userAvatarUrl!)
-                      : null,
-                  child: (widget.userAvatarUrl == null ||
-                          widget.userAvatarUrl!.isEmpty)
-                      ? Text(
-                          widget.userName.isNotEmpty
-                              ? widget.userName[0].toUpperCase()
-                              : 'U',
-                          style: GoogleFonts.manrope(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                            color: Colors.white,
-                          ),
-                        )
-                      : null,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      // Gunakan outline color tema
+                      color: theme.colorScheme.outline.withOpacity(0.5),
+                      width: 1, // Border lebih tipis
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 18,
+                    // Background sedikit transparan dari surface
+                    backgroundColor:
+                        AppTheme.getSurfaceColor(context).withOpacity(0.5),
+                    backgroundImage: widget.userAvatarUrl != null &&
+                            widget.userAvatarUrl!.isNotEmpty
+                        ? NetworkImage(widget.userAvatarUrl!)
+                        : null,
+                    child: (widget.userAvatarUrl == null ||
+                            widget.userAvatarUrl!.isEmpty)
+                        ? Text(
+                            widget.userName.isNotEmpty
+                                ? widget.userName[0].toUpperCase()
+                                : 'U',
+                            style: GoogleFonts.manrope(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: primaryTextColor,
+                            ),
+                          )
+                        : null,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: AppTheme.spacing12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,16 +233,19 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
                       style: GoogleFonts.manrope(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: primaryTextColor, // WARNA DINAMIS
+                        letterSpacing: -0.1,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       widget.userEmail,
                       style: GoogleFonts.manrope(
-                        fontSize: 11,
-                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: secondaryTextColor, // WARNA DINAMIS
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -231,8 +253,9 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              _buildNotificationButton(context),
+              const SizedBox(width: AppTheme.spacing8),
+              // Tombol notifikasi perlu disesuaikan warnanya
+              _buildNotificationButton(context, collapsed: true),
             ],
           ),
         ),
@@ -241,29 +264,38 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
   }
 
   Widget _buildExpandedHeader(BuildContext context) {
-    final isDarkMode = AppTheme.isDarkMode(context);
+    final primaryTextColor = AppTheme.getTextPrimaryColor(context);
+    final secondaryTextColor = AppTheme.getTextSecondaryColor(context);
 
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          padding: const EdgeInsets.fromLTRB(
+            AppTheme.spacing20,
+            AppTheme.spacing16,
+            AppTheme.spacing20,
+            AppTheme.spacing20,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-                children: [_buildNotificationButton(context)],
+                children: [
+                  _buildNotificationButton(context, collapsed: false)
+                ], // Tombol notifikasi
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppTheme.spacing32),
               Text(
                 _getPersonalizedGreeting(),
                 style: GoogleFonts.manrope(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: primaryTextColor,
                   height: 1.2,
+                  letterSpacing: -0.5,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -273,72 +305,15 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
                 _getMotivationalQuote(context),
                 style: GoogleFonts.manrope(
                   fontSize: 13,
-                  color: Colors.white.withOpacity(0.85),
-                  height: 1.3,
+                  fontWeight: FontWeight.w400,
+                  color: secondaryTextColor, // WARNA DINAMIS
+                  height: 1.4,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(isDarkMode ? 0.08 : 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today_outlined,
-                          size: 16,
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          DateFormat(
-                            'EEEE, dd MMM yyyy',
-                            context.locale.toString(),
-                          ).format(_now),
-                          style: GoogleFonts.manrope(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      width: 1,
-                      height: 20,
-                      color: Colors.white.withOpacity(0.3),
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time_outlined,
-                          size: 16,
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          DateFormat('HH:mm').format(_now),
-                          style: GoogleFonts.manrope(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              const Spacer(), // Dorong kartu ke bawah
+              _buildDateTimeCard(context), // Kartu waktu tetap
             ],
           ),
         ),
@@ -346,8 +321,94 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
     );
   }
 
-  Widget _buildNotificationButton(BuildContext context) {
+  Widget _buildDateTimeCard(BuildContext context) {
     final theme = Theme.of(context);
+    final isDarkMode = AppTheme.isDarkMode(context);
+    // Warna teks primer
+    final primaryTextColor = AppTheme.getTextPrimaryColor(context);
+    // Warna teks sekunder yang sedikit lebih terang/gelap dari primary
+    final secondaryTextColor = AppTheme.getTextSecondaryColor(context);
+    // Warna background card (Surface)
+    final cardBackgroundColor = AppTheme.getSurfaceColor(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacing16,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: cardBackgroundColor, // Gunakan Surface Color
+        borderRadius: BorderRadius.circular(AppTheme.radius12),
+        border: Border.all(
+          // Gunakan Outline Color
+          color: theme.colorScheme.outline.withOpacity(0.5),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 15,
+                  color: secondaryTextColor, // WARNA DINAMIS
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    DateFormat(
+                      'EEEE, dd MMM yyyy',
+                      context.locale.toString(),
+                    ).format(_now),
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: primaryTextColor, // WARNA DINAMIS
+                      letterSpacing: -0.1,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 16,
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            color: theme.colorScheme.outline.withOpacity(0.5), // WARNA DINAMIS
+          ),
+          Row(
+            children: [
+              Icon(
+                Icons.access_time_outlined,
+                size: 15,
+                color: secondaryTextColor, // WARNA DINAMIS
+              ),
+              const SizedBox(width: 6),
+              Text(
+                DateFormat('HH:mm').format(_now),
+                style: GoogleFonts.manrope(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: primaryTextColor, // WARNA DINAMIS
+                  letterSpacing: -0.1,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationButton(BuildContext context,
+      {required bool collapsed}) {
+    final theme = Theme.of(context);
+    final iconColor = AppTheme.getTextPrimaryColor(context);
 
     return GestureDetector(
       onTap: () {
@@ -357,35 +418,39 @@ class _ModernSliverHomeAppBarState extends State<ModernSliverHomeAppBar>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Icon(
-              Icons.notifications_outlined,
-              size: 24,
-              color: Colors.white,
-            ),
+          Icon(
+            Icons.notifications_outlined,
+            size: 20,
+            color: iconColor,
           ),
           if (widget.notificationCount > 0)
             Positioned(
-              right: 4,
-              top: 4,
+              right: -4,
+              top: -4,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.error,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white, width: 1.5),
+                  color: theme.colorScheme.error, // Warna error tetap
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    // Border putih agar kontras dengan badge merah
+                    color: Colors.white,
+                    width: 1.5,
+                  ),
                 ),
-                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                constraints: const BoxConstraints(
+                  minWidth: 16,
+                  minHeight: 16,
+                ),
                 child: Center(
                   child: Text(
                     widget.notificationCount > 9
                         ? '9+'
                         : widget.notificationCount.toString(),
                     style: GoogleFonts.manrope(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white, // Teks badge putih
                       height: 1,
                     ),
                   ),

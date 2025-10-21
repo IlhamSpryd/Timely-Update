@@ -30,38 +30,40 @@ class AbsenStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDarkMode = AppTheme.isDarkMode(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12.0, bottom: 12.0),
+          padding: const EdgeInsets.only(
+            left: AppTheme.spacing4,
+            bottom: AppTheme.spacing12,
+          ),
           child: Text(
             "card_titles.today_status".tr().toUpperCase(),
             style: GoogleFonts.manrope(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
               color: AppTheme.getTextSecondaryColor(context),
+              letterSpacing: 1.2,
             ),
           ),
         ),
-        InkWell(
-          onTap: isLoading ? null : onTap,
-          borderRadius: BorderRadius.circular(AppTheme.radius20),
-          child: Ink(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(AppTheme.radius20),
-              border: Border.all(
-                color: theme.colorScheme.outline,
-                width: 1,
+        Container(
+          decoration: AppTheme.elevatedCard(isDark: isDarkMode),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isLoading ? null : onTap,
+              borderRadius: BorderRadius.circular(AppTheme.radius16),
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spacing20),
+                child: isLoading
+                    ? _buildLoadingState(context)
+                    : _buildContentState(context),
               ),
             ),
-            child: isLoading
-                ? _buildLoadingState(context)
-                : _buildContentState(context),
           ),
         ),
       ],
@@ -83,39 +85,64 @@ class AbsenStatusCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(AppTheme.radius12),
                 ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 100,
-                    height: 14,
-                    color: theme.colorScheme.surface,
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 150,
-                    height: 20,
-                    color: theme.colorScheme.surface,
-                  ),
-                ],
+              const SizedBox(width: AppTheme.spacing16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 150,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: 80,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppTheme.radius8),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: AppTheme.spacing20),
           Container(
             width: double.infinity,
-            height: 60,
+            height: 80,
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(AppTheme.radius16),
+              borderRadius: BorderRadius.circular(AppTheme.radius12),
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacing16),
+          Container(
+            width: double.infinity,
+            height: 16,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
         ],
@@ -127,49 +154,86 @@ class AbsenStatusCard extends StatelessWidget {
     final theme = Theme.of(context);
     Color statusColor;
     IconData statusIcon;
+    String statusLabel;
 
     switch (todayStatusKey) {
       case "present":
       case "finished":
         statusColor = AppTheme.getStatusColor('present');
         statusIcon = Icons.check_circle_rounded;
+        statusLabel = "attendance_status.$todayStatusKey".tr();
         break;
       case "leave":
         statusColor = AppTheme.getStatusColor('leave');
         statusIcon = Icons.event_busy_rounded;
+        statusLabel = "attendance_status.$todayStatusKey".tr();
         break;
       default:
         statusColor = AppTheme.getTextSecondaryColor(context);
         statusIcon = Icons.schedule_rounded;
+        statusLabel = "attendance_status.not_present".tr();
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(AppTheme.radius12),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radius12),
+                border: Border.all(
+                  color: statusColor.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Icon(statusIcon, color: statusColor, size: 24),
             ),
-            child: Icon(statusIcon, color: statusColor, size: 24),
-          ),
-          title: Text(
-            "attendance_status.$todayStatusKey".tr(),
-            style: GoogleFonts.manrope(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+            const SizedBox(width: AppTheme.spacing16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Status Hari Ini",
+                    style: GoogleFonts.manrope(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.getTextSecondaryColor(context),
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    statusLabel,
+                    style: GoogleFonts.manrope(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.getTextPrimaryColor(context),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          trailing: attendanceBadgeKey.isNotEmpty
-              ? _buildBadge(context, attendanceBadgeKey)
-              : null,
+            if (attendanceBadgeKey.isNotEmpty)
+              _buildBadge(context, attendanceBadgeKey),
+          ],
         ),
-        if (hasCheckedIn)
-          Padding(
-            padding: const EdgeInsets.only(top: 16.0),
+        if (hasCheckedIn) ...[
+          const SizedBox(height: AppTheme.spacing20),
+          Container(
+            padding: const EdgeInsets.all(AppTheme.spacing16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(AppTheme.radius12),
+              border: Border.all(
+                color: theme.colorScheme.outline.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
             child: IntrinsicHeight(
               child: Row(
                 children: [
@@ -183,7 +247,13 @@ class AbsenStatusCard extends StatelessWidget {
                     ),
                   ),
                   if (hasCheckedOut) ...[
-                    VerticalDivider(color: theme.dividerColor, thickness: 1),
+                    Container(
+                      width: 1,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacing16,
+                      ),
+                      color: theme.colorScheme.outline.withOpacity(0.3),
+                    ),
                     Expanded(
                       child: _buildTimeInfo(
                         context,
@@ -198,26 +268,40 @@ class AbsenStatusCard extends StatelessWidget {
               ),
             ),
           ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Icon(
-              Icons.info_outline_rounded,
-              size: 18,
-              color: AppTheme.getTextSecondaryColor(context),
+        ],
+        const SizedBox(height: AppTheme.spacing16),
+        Container(
+          padding: const EdgeInsets.all(AppTheme.spacing12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(AppTheme.radius8),
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.1),
+              width: 1,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                timeDifferenceMessage,
-                style: GoogleFonts.manrope(
-                  fontSize: 13,
-                  color: AppTheme.getTextSecondaryColor(context),
-                  fontWeight: FontWeight.w500,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 16,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: AppTheme.spacing12),
+              Expanded(
+                child: Text(
+                  timeDifferenceMessage,
+                  style: GoogleFonts.manrope(
+                    fontSize: 13,
+                    color: AppTheme.getTextPrimaryColor(context),
+                    fontWeight: FontWeight.w500,
+                    height: 1.4,
+                    letterSpacing: -0.1,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -234,10 +318,17 @@ class AbsenStatusCard extends StatelessWidget {
         : Icons.access_time_rounded;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacing12,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppTheme.radius8),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -247,9 +338,10 @@ class AbsenStatusCard extends StatelessWidget {
           Text(
             badgeText,
             style: GoogleFonts.manrope(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
               color: color,
+              letterSpacing: 0.3,
             ),
           ),
         ],
@@ -267,22 +359,37 @@ class AbsenStatusCard extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: color.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Icon(icon, color: color, size: 18),
+        ),
+        const SizedBox(height: AppTheme.spacing8),
         Text(
           label,
           style: GoogleFonts.manrope(
-            fontSize: 12,
+            fontSize: 11,
             color: AppTheme.getTextSecondaryColor(context),
             fontWeight: FontWeight.w500,
+            letterSpacing: 0.2,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
-          time != null ? DateFormat('HH:mm').format(time) : '-',
+          time != null ? DateFormat('HH:mm').format(time) : '--:--',
           style: GoogleFonts.manrope(
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.w700,
+            color: AppTheme.getTextPrimaryColor(context),
+            letterSpacing: -0.5,
+            height: 1,
           ),
         ),
       ],

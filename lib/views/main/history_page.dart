@@ -1,5 +1,3 @@
-// lib/history_page.dart
-
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +5,7 @@ import 'package:timely/api/history_api.dart';
 import 'package:timely/models/historyabsen_model.dart';
 import 'package:timely/services/history_repository.dart';
 import 'package:timely/services/history_service.dart';
+import 'package:timely/utils/app_theme.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -23,7 +22,6 @@ class _HistoryPageState extends State<HistoryPage>
   final HistoryAbsenRepository _historyRepository = HistoryService(
     HistoryAbsenApiClient(),
   );
-  // AbsenRepository _absenRepository dihapus karena fitur delete dihapus
 
   List<Datum> _attendanceHistory = [];
   DateTimeRange? _selectedRange;
@@ -72,8 +70,6 @@ class _HistoryPageState extends State<HistoryPage>
     }
   }
 
-  // Fungsi _deleteAttendance dan _showDeleteConfirmationDialog telah dihapus.
-
   Future<void> _pickDateRange() async {
     final DateTime now = DateTime.now();
     final theme = Theme.of(context);
@@ -99,42 +95,6 @@ class _HistoryPageState extends State<HistoryPage>
 
     if (picked != null) {
       setState(() => _selectedRange = picked);
-    }
-  }
-
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'hadir':
-      case 'present':
-        return const Color(0xFF10B981);
-      case 'terlambat':
-      case 'late':
-        return const Color(0xFFF59E0B);
-      case 'izin':
-      case 'leave':
-        return const Color(0xFF3B82F6);
-      case 'alpha':
-        return const Color(0xFFEF4444);
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getStatusIcon(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'hadir':
-      case 'present':
-        return Icons.check_circle_outline_rounded;
-      case 'terlambat':
-      case 'late':
-        return Icons.warning_amber_rounded;
-      case 'izin':
-      case 'leave':
-        return Icons.info_outline_rounded;
-      case 'alpha':
-        return Icons.cancel_outlined;
-      default:
-        return Icons.help_outline_rounded;
     }
   }
 
@@ -182,7 +142,7 @@ class _HistoryPageState extends State<HistoryPage>
                               const EdgeInsets.only(left: 20, bottom: 16),
                           title: Text(
                             "history.title".tr(),
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.manrope(
                               fontWeight: FontWeight.bold,
                               color: theme.textTheme.titleLarge?.color,
                             ),
@@ -204,15 +164,14 @@ class _HistoryPageState extends State<HistoryPage>
                           delegate:
                               SliverChildBuilderDelegate((context, index) {
                             final item = filteredHistory[index];
-                            // Tambahkan animasi pada setiap item
                             return _buildAnimatedListItem(
                               index: index,
                               child: _buildAttendanceCard(item),
                             );
                           }, childCount: filteredHistory.length),
                         ),
-                      // Padding aman di bagian bawah
-                      const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                      const SliverToBoxAdapter(
+                          child: SizedBox(height: AppTheme.spacing24)),
                     ],
                   ),
                 ),
@@ -243,109 +202,137 @@ class _HistoryPageState extends State<HistoryPage>
 
   Widget _buildAttendanceCard(Datum item) {
     final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-    final cardColor = isDarkMode ? const Color(0xFF1C1C1E) : Colors.white;
-    final statusColor = _getStatusColor(item.status);
-    final statusIcon = _getStatusIcon(item.status);
+    final isDarkMode = AppTheme.isDarkMode(context);
+    final Color statusColor = AppTheme.getStatusColor(item.status ?? 'unknown');
+    final IconData statusIcon;
+
+    switch (item.status?.toLowerCase()) {
+      case 'hadir':
+      case 'present':
+        statusIcon = Icons.check_circle_outline_rounded;
+        break;
+      case 'terlambat':
+      case 'late':
+        statusIcon = Icons.warning_amber_rounded;
+        break;
+      case 'izin':
+      case 'leave':
+        statusIcon = Icons.info_outline_rounded;
+        break;
+      case 'alpha':
+        statusIcon = Icons.cancel_outlined;
+        break;
+      default:
+        statusIcon = Icons.help_outline_rounded;
+    }
+
     final dateFormatter = DateFormat(
       'EEEE, d MMM yyyy',
       context.locale.toString(),
     );
-
-    // Widget Dismissible telah dihapus
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacing16,
+        vertical: AppTheme.spacing8,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(statusIcon, color: statusColor, size: 28),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  dateFormatter.format(item.attendanceDate ?? DateTime.now()),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.spacing20),
+        decoration: AppTheme.elevatedCard(isDark: isDarkMode),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(statusIcon, color: statusColor, size: 28),
+                const SizedBox(width: AppTheme.spacing16),
+                Expanded(
+                  child: Text(
+                    dateFormatter.format(item.attendanceDate ?? DateTime.now()),
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: AppTheme.getTextPrimaryColor(context),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  (item.status ?? "-").tr(),
-                  style: GoogleFonts.plusJakartaSans(
-                    color: statusColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                const SizedBox(width: AppTheme.spacing8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacing12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppTheme.radius20),
+                  ),
+                  child: Text(
+                    (item.status ?? "-").tr(),
+                    style: GoogleFonts.manrope(
+                      color: statusColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 44.0,
+                top: AppTheme.spacing16,
+                bottom: AppTheme.spacing16,
               ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(height: 1, indent: 44),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTimeInfo(
-                  'home.check_in'.tr(),
-                  item.checkInTime ?? '-',
-                  Colors.green,
+              child: AppTheme.divider(isDark: isDarkMode),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTimeInfo(
+                    'home.check_in'.tr(),
+                    item.checkInTime ?? '--',
+                    'present',
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTimeInfo(
-                  'home.check_out'.tr(),
-                  item.checkOutTime ?? '-',
-                  Colors.red,
+                const SizedBox(width: AppTheme.spacing16),
+                Expanded(
+                  child: _buildTimeInfo(
+                    'home.check_out'.tr(),
+                    item.checkOutTime ?? '--',
+                    'absent',
+                  ),
                 ),
-              ),
+              ],
+            ),
+            if (item.alasanIzin != null && item.alasanIzin!.isNotEmpty) ...[
+              const SizedBox(height: AppTheme.spacing16),
+              _buildReasonInfo(item.alasanIzin!),
             ],
-          ),
-          if (item.alasanIzin != null && item.alasanIzin!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _buildReasonInfo(item.alasanIzin!),
           ],
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildTimeInfo(String title, String time, Color color) {
+  Widget _buildTimeInfo(String title, String time, String statusKey) {
+    final color = AppTheme.getStatusColor(statusKey);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.manrope(
             fontSize: 13,
-            color: Colors.grey.shade500,
+            color: AppTheme.getTextSecondaryColor(context),
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppTheme.spacing4),
         Text(
           time,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.manrope(
             fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: color,
           ),
         ),
@@ -356,17 +343,25 @@ class _HistoryPageState extends State<HistoryPage>
   Widget _buildReasonInfo(String reason) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacing12,
+        vertical: AppTheme.spacing12,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radius12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Text(
         "${'history.reason'.tr()}: $reason",
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.manrope(
           fontSize: 13,
           color: Theme.of(context).colorScheme.primary,
-          fontStyle: FontStyle.italic,
+          fontWeight: FontWeight.w500,
+          height: 1.4,
         ),
       ),
     );
