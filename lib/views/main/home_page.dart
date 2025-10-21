@@ -1,5 +1,3 @@
-// lib/home_page.dart
-
 import 'dart:async';
 import 'dart:math';
 
@@ -12,18 +10,16 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timely/providers/home_provider.dart';
 import 'package:timely/widgets/absen_stats_card.dart';
 import 'package:timely/widgets/absen_status_card.dart';
 import 'package:timely/widgets/attendance_action_section.dart';
 import 'package:timely/widgets/location_card.dart';
 import 'package:timely/widgets/sliver_home_app_bar.dart';
 
-import '../../models/absen_stats.dart';
-import '../../services/absen_repository.dart';
-import '../../services/auth_services.dart';
 import '../../services/local_notification.dart';
-import '../../services/profile_repository.dart';
 
 class ModernHomePage extends StatefulWidget {
   final void Function(String) showSnackBar;
@@ -41,17 +37,9 @@ class _ModernHomePageState extends State<ModernHomePage>
   @override
   bool get wantKeepAlive => true;
 
+  // --- State Lokal (UI & Logika Non-Data) ---
   late Timer _timer;
   DateTime _now = DateTime.now();
-  String _userName = "User";
-  String _userEmail = "user@example.com";
-  String? _profilePhotoUrl;
-  bool _hasCheckedIn = false;
-  bool _hasCheckedOut = false;
-  DateTime? _checkInTime;
-  DateTime? _checkOutTime;
-  String _todayStatusKey = "not_present";
-  AbsenStatsModel? _absenStats;
   GoogleMapController? _mapController;
   LatLng _currentPosition = const LatLng(-6.200000, 106.816666);
   String _currentAddress = "Mendapatkan lokasi...";
@@ -62,10 +50,8 @@ class _ModernHomePageState extends State<ModernHomePage>
     106.87298491839785,
   );
   final double _officeRadius = 50.0;
-  bool _isLoadingData = false;
   bool _isSubmitting = false;
   bool _isLoadingLocation = false;
-  bool _isLoadingStats = false;
   late final AnimationController _mainAnimationController;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 8, minute: 0);
   bool _reminderEnabled = true;
@@ -77,9 +63,7 @@ class _ModernHomePageState extends State<ModernHomePage>
   String _currentQuestionText = '';
   String _correctAnswer = '';
   String _actionAfterQuestion = '';
-  final AuthService _authService = AuthService();
-  final AbsenRepository _absenRepository = AbsenRepository();
-  final ProfileRepository _profileRepository = ProfileRepository();
+
   static const int _checkInTargetHour = 8;
   static const int _checkInTargetMinute = 0;
   static const int _checkOutTargetHour = 15;
@@ -95,8 +79,11 @@ class _ModernHomePageState extends State<ModernHomePage>
     return distance <= _officeRadius;
   }
 
-  bool get _canCheckIn => !_hasCheckedIn && _todayStatusKey != "leave";
-  bool get _canCheckOut => _hasCheckedIn && !_hasCheckedOut;
+  bool _canCheckIn(HomeProvider provider) =>
+      !provider.hasCheckedIn && provider.todayStatusKey != "leave";
+  bool _canCheckOut(HomeProvider provider) =>
+      provider.hasCheckedIn && !provider.hasCheckedOut;
+
   @override
   void initState() {
     super.initState();
@@ -105,7 +92,13 @@ class _ModernHomePageState extends State<ModernHomePage>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..forward();
-    _loadInitialData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomeProvider>().fetchData();
+    });
+
+    _loadReminderSettings();
+    _getCurrentLocation();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final newTime = DateTime.now();
@@ -132,87 +125,12 @@ class _ModernHomePageState extends State<ModernHomePage>
     if (mounted) _setMapStyle();
   }
 
-  void _loadInitialData() {
-    _loadUserData();
-    _loadAbsenData();
-    _loadAbsenStats();
-    _loadReminderSettings();
-    _getCurrentLocation();
-  }
-
   Future<void> _handleRefresh() async {
     HapticFeedback.mediumImpact();
     await Future.wait([
-      _loadUserData(),
-      _loadAbsenData(),
-      _loadAbsenStats(),
+      context.read<HomeProvider>().fetchData(),
       _getCurrentLocation(),
     ]);
-  }
-
-  Future<void> _loadUserData() async {
-    try {
-      final profileData = await _profileRepository.getProfile();
-      final data = profileData.data;
-      if (mounted && data != null) {
-        setState(() {
-          _userName = data.name;
-          _userEmail = data.email;
-          _profilePhotoUrl = data.profilePhotoUrl;
-        });
-      }
-    } catch (e) {
-      final name = await _authService.getCurrentUserName();
-      if (mounted && name != null) setState(() => _userName = name);
-    }
-  }
-
-  Future<void> _loadAbsenData() async {
-    if (_isLoadingData) return;
-    setState(() => _isLoadingData = true);
-    try {
-      final todayAbsen = await _absenRepository.getAbsenToday();
-      if (mounted) {
-        setState(() {
-          final data = todayAbsen.data;
-          _hasCheckedIn = data?.checkInTime != null;
-          _hasCheckedOut = data?.checkOutTime != null;
-
-          if (data?.status == "Izin") {
-            _todayStatusKey = "leave";
-          } else if (_hasCheckedOut) {
-            _todayStatusKey = "finished";
-          } else if (_hasCheckedIn) {
-            _todayStatusKey = "present";
-          } else {
-            _todayStatusKey = "not_present";
-          }
-
-          _checkInTime = data?.checkInTime != null
-              ? _parseTimeString(data!.checkInTime!)
-              : null;
-          _checkOutTime = data?.checkOutTime != null
-              ? _parseTimeString(data!.checkOutTime!)
-              : null;
-        });
-      }
-    } catch (e) {
-      if (kDebugMode) print("Error loading absen data: $e");
-    } finally {
-      if (mounted) setState(() => _isLoadingData = false);
-    }
-  }
-
-  Future<void> _loadAbsenStats() async {
-    setState(() => _isLoadingStats = true);
-    try {
-      final stats = await _absenRepository.getAbsenStats();
-      if (mounted) setState(() => _absenStats = stats);
-    } catch (e) {
-      if (kDebugMode) print("Error loading absen stats: $e");
-    } finally {
-      if (mounted) setState(() => _isLoadingStats = false);
-    }
   }
 
   Future<void> _handleLocationPermission() async {
@@ -300,7 +218,7 @@ class _ModernHomePageState extends State<ModernHomePage>
       final style = await rootBundle.loadString(
         isDarkMode
             ? 'assets/maps/maps_styles_dark.json'
-            : 'assets/maps/maps_styles_light.json',
+            : 'assets/maps/maps_styles_ligh.json',
       );
       _mapController?.setMapStyle(style);
     } catch (e) {
@@ -308,10 +226,7 @@ class _ModernHomePageState extends State<ModernHomePage>
     }
   }
 
-  Future<void> _handleAbsen(
-    Future<void> Function() absenFunction,
-    String successMessage,
-  ) async {
+  Future<void> _onCheckIn() async {
     if (!_isInOfficeArea) {
       widget.showSnackBar("Anda berada di luar radius kantor yang diizinkan.");
       return;
@@ -319,58 +234,64 @@ class _ModernHomePageState extends State<ModernHomePage>
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-      await absenFunction();
+      await context.read<HomeProvider>().checkIn(
+            _currentPosition.latitude,
+            _currentPosition.longitude,
+            _currentAddress,
+          );
       if (mounted) {
-        widget.showSnackBar(successMessage);
+        widget.showSnackBar("Absen masuk berhasil!");
         HapticFeedback.mediumImpact();
-        _loadAbsenData();
-        _loadAbsenStats();
       }
     } catch (e) {
-      final errorMessage = e.toString().split("Exception:").last.trim();
-      widget.showSnackBar("Gagal: $errorMessage");
+      widget.showSnackBar("Gagal: $e");
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  Future<void> _onCheckIn() => _handleAbsen(
-        () => _absenRepository.checkIn(
-          _currentPosition.latitude,
-          _currentPosition.longitude,
-          _currentAddress,
-        ),
-        "Absen masuk berhasil!",
-      );
-  Future<void> _onCheckOut() => _handleAbsen(
-        () => _absenRepository.checkOut(
-          _currentPosition.latitude,
-          _currentPosition.longitude,
-          _currentAddress,
-        ),
-        "Absen pulang berhasil!",
-      );
+  Future<void> _onCheckOut() async {
+    if (!_isInOfficeArea) {
+      widget.showSnackBar("Anda berada di luar radius kantor yang diizinkan.");
+      return;
+    }
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await context.read<HomeProvider>().checkOut(
+            _currentPosition.latitude,
+            _currentPosition.longitude,
+            _currentAddress,
+          );
+      if (mounted) {
+        widget.showSnackBar("Absen pulang berhasil!");
+        HapticFeedback.mediumImpact();
+      }
+    } catch (e) {
+      widget.showSnackBar("Gagal: $e");
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
   Future<void> _onAjukanIzin(String reason) async {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-      await _absenRepository.izin(reason);
+      await context.read<HomeProvider>().ajukanIzin(reason);
       if (mounted) {
         widget.showSnackBar("Pengajuan izin berhasil dikirim.");
         HapticFeedback.mediumImpact();
-        _loadAbsenData();
-        _loadAbsenStats();
       }
     } catch (e) {
-      final errorMessage = e.toString().split("Exception:").last.trim();
-      widget.showSnackBar("Gagal: $errorMessage");
+      widget.showSnackBar("Gagal: $e");
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
-  String _getTimeDifferenceMessage() {
-    if (!_hasCheckedIn && _todayStatusKey != "leave") {
+  String _getTimeDifferenceMessage(HomeProvider provider) {
+    if (!provider.hasCheckedIn && provider.todayStatusKey != "leave") {
       return _formatTimeDifference(
         _now,
         _checkInTargetHour,
@@ -378,7 +299,7 @@ class _ModernHomePageState extends State<ModernHomePage>
         'check_in',
       );
     }
-    if (_hasCheckedIn && !_hasCheckedOut) {
+    if (provider.hasCheckedIn && !provider.hasCheckedOut) {
       return _formatTimeDifference(
         _now,
         _checkOutTargetHour,
@@ -430,37 +351,19 @@ class _ModernHomePageState extends State<ModernHomePage>
           );
   }
 
-  String _getAttendanceBadgeKey() {
-    if (_checkInTime == null) return '';
+  String _getAttendanceBadgeKey(HomeProvider provider) {
+    if (provider.checkInTime == null) return '';
     final targetTime = DateTime(
-      _checkInTime!.year,
-      _checkInTime!.month,
-      _checkInTime!.day,
+      provider.checkInTime!.year,
+      provider.checkInTime!.month,
+      provider.checkInTime!.day,
       _checkInTargetHour,
       _checkInTargetMinute,
     );
-    return _checkInTime!.isAfter(targetTime.add(const Duration(minutes: 1)))
+    return provider.checkInTime!
+            .isAfter(targetTime.add(const Duration(minutes: 1)))
         ? 'late'
         : 'on_time';
-  }
-
-  DateTime? _parseTimeString(String timeString) {
-    try {
-      final now = DateTime.now();
-      final parts = timeString.split(':');
-      if (parts.length >= 2) {
-        return DateTime(
-          now.year,
-          now.month,
-          now.day,
-          int.parse(parts[0]),
-          int.parse(parts[1]),
-        );
-      }
-    } catch (e) {
-      if (kDebugMode) print("Error parsing time: $e");
-    }
-    return null;
   }
 
   void _startAbsenProcess(String action) {
@@ -691,6 +594,9 @@ class _ModernHomePageState extends State<ModernHomePage>
     final textPrimaryColor = theme.colorScheme.onSurface;
     final refreshIndicatorColor = theme.colorScheme.primary;
 
+    final homeProvider = context.watch<HomeProvider>();
+    final homeState = homeProvider.state;
+
     return Scaffold(
       backgroundColor: scaffoldBackgroundColor,
       body: Stack(
@@ -705,73 +611,14 @@ class _ModernHomePageState extends State<ModernHomePage>
               ),
               slivers: [
                 ModernSliverHomeAppBar(
-                  userName: _userName,
-                  userEmail: _userEmail,
-                  userAvatarUrl: _profilePhotoUrl,
+                  userName: homeProvider.userName,
+                  userEmail: homeProvider.userEmail,
+                  userAvatarUrl: homeProvider.profilePhotoUrl,
                   onNotificationTap: _showReminderSettings,
                 ),
                 SliverPadding(
-                  // Ubah padding bawah di sini
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate.fixed([
-                      _buildAnimatedItem(
-                        0,
-                        AbsenStatusCard(
-                          isLoading: _isLoadingData,
-                          todayStatusKey: _todayStatusKey,
-                          hasCheckedIn: _hasCheckedIn,
-                          hasCheckedOut: _hasCheckedOut,
-                          checkInTime: _checkInTime,
-                          checkOutTime: _checkOutTime,
-                          attendanceBadgeKey: _getAttendanceBadgeKey(),
-                          timeDifferenceMessage: _getTimeDifferenceMessage(),
-                          onTap: _loadAbsenData,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildAnimatedItem(
-                        1,
-                        LocationCard(
-                          currentAddress: _currentAddress,
-                          isLoadingLocation: _isLoadingLocation,
-                          isInOfficeArea: _isInOfficeArea,
-                          markers: _markers,
-                          officeCircle: _officeCircle,
-                          officeLocation: _officeLocation,
-                          onMapCreated: (controller) {
-                            _mapController = controller;
-                            _setMapStyle();
-                          },
-                          onRefreshLocation: _getCurrentLocation,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildAnimatedItem(
-                        2,
-                        AttendanceActionsSection(
-                          isSubmitting: _isSubmitting,
-                          canCheckIn: _canCheckIn,
-                          canCheckOut: _canCheckOut,
-                          onCheckIn: () => _startAbsenProcess('checkin'),
-                          onCheckOut: () => _startAbsenProcess('checkout'),
-                          onAjukanIzin: _showIzinDialog,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildAnimatedItem(
-                        3,
-                        _isLoadingStats
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: CircularProgressIndicator.adaptive(),
-                                ),
-                              )
-                            : AbsenStatsCard(statsData: _absenStats?.data),
-                      ),
-                    ]),
-                  ),
+                  sliver: _buildMainContent(homeProvider, homeState),
                 ),
               ],
             ),
@@ -806,6 +653,108 @@ class _ModernHomePageState extends State<ModernHomePage>
             ),
         ],
       ),
+    );
+  }
+
+  // --- FUNGSI UNTUK MENANGANI STATE UI ---
+
+  Widget _buildMainContent(HomeProvider homeProvider, HomeState homeState) {
+    // 1. LOADING STATE: Saat data user (paling penting) belum ada
+    if (homeState == HomeState.loading && homeProvider.user == null) {
+      return const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator.adaptive()),
+      );
+    }
+
+    // 2. ERROR STATE: Saat data user (paling penting) gagal dimuat
+    if (homeState == HomeState.error && homeProvider.user == null) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Gagal memuat data utama: ${homeProvider.errorMessage}",
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => context.read<HomeProvider>().fetchData(),
+                  child: const Text("Coba Lagi"),
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 3. LOADED STATE: Data user sudah ada, tampilkan semua konten
+    return SliverList(
+      delegate: SliverChildListDelegate.fixed([
+        _buildAnimatedItem(
+          0,
+          AbsenStatusCard(
+            isLoading: homeState == HomeState.loading &&
+                homeProvider.absenToday == null,
+            todayStatusKey: homeProvider.todayStatusKey,
+            hasCheckedIn: homeProvider.hasCheckedIn,
+            hasCheckedOut: homeProvider.hasCheckedOut,
+            checkInTime: homeProvider.checkInTime,
+            checkOutTime: homeProvider.checkOutTime,
+            attendanceBadgeKey: _getAttendanceBadgeKey(homeProvider),
+            timeDifferenceMessage: _getTimeDifferenceMessage(homeProvider),
+            onTap: () => context.read<HomeProvider>().fetchData(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildAnimatedItem(
+          1,
+          LocationCard(
+            currentAddress: _currentAddress,
+            isLoadingLocation: _isLoadingLocation,
+            isInOfficeArea: _isInOfficeArea,
+            markers: _markers,
+            officeCircle: _officeCircle,
+            officeLocation: _officeLocation,
+            onMapCreated: (controller) {
+              _mapController = controller;
+              _setMapStyle();
+            },
+            onRefreshLocation: _getCurrentLocation,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildAnimatedItem(
+          2,
+          AttendanceActionsSection(
+            isSubmitting: _isSubmitting,
+            canCheckIn: _canCheckIn(homeProvider),
+            canCheckOut: _canCheckOut(homeProvider),
+            onCheckIn: () => _startAbsenProcess('checkin'),
+            onCheckOut: () => _startAbsenProcess('checkout'),
+            onAjukanIzin: _showIzinDialog,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildAnimatedItem(
+          3,
+          homeState == HomeState.loading && homeProvider.absenStats == null
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator.adaptive(),
+                  ),
+                )
+              : homeState == HomeState.error && homeProvider.absenStats == null
+                  ? Center(
+                      child: Text(
+                          "Gagal memuat statistik: ${homeProvider.errorMessage}"))
+                  : AbsenStatsCard(statsData: homeProvider.absenStats?.data),
+        ),
+      ]),
     );
   }
 }

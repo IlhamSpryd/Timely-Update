@@ -310,9 +310,9 @@ class AppTheme {
         linearTrackColor: _lightDivider,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: _primaryDark,
+        backgroundColor: _darkSurface,
         contentTextStyle: GoogleFonts.manrope(
-          color: _primaryLight,
+          color: _textPrimaryDark,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -603,12 +603,10 @@ class AppTheme {
         color: _primaryLight,
         linearTrackColor: _darkDivider,
       ),
-      // --- AWAL PERUBAHAN ---
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: _darkSurface,
+        backgroundColor: _lightBorder,
         contentTextStyle: GoogleFonts.manrope(
-          // Mengubah warna teks menjadi gelap agar kontras dengan background terang
-          color: _textPrimaryDark,
+          color: _textPrimaryLight,
           fontSize: 14,
           fontWeight: FontWeight.w500,
         ),
@@ -617,7 +615,6 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
         ),
       ),
-      // --- AKHIR PERUBAHAN ---
     );
   }
 
@@ -715,6 +712,7 @@ class AppTheme {
       case 'hadir':
       case 'completed':
       case 'success':
+      case 'on_time':
         return _accentGreen;
       case 'late':
       case 'warning':
@@ -723,9 +721,11 @@ class AppTheme {
       case 'absent':
       case 'error':
       case 'failed':
+      case 'finished':
         return _accentRed;
       case 'leave':
       case 'info':
+      case 'izin':
         return _accentPurple;
       default:
         return _textSecondaryLight;

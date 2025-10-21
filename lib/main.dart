@@ -1,17 +1,20 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timely/providers/home_provider.dart';
 import 'package:timely/services/local_notification.dart';
 import 'package:timely/splash_screen.dart';
 import 'package:timely/utils/app_theme.dart';
 import 'package:timely/utils/theme_helper.dart';
-import 'package:timely/widgets/theme_provider.dart';
+import 'package:timely/utils/theme_provider.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await EasyLocalization.ensureInitialized();
   await initializeDateFormatting('id_ID');
   tz.initializeTimeZones();
@@ -37,8 +40,15 @@ Future<void> main() async {
       supportedLocales: const [Locale('en'), Locale('id'), Locale('ko')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
-      child: ChangeNotifierProvider(
-        create: (_) => ThemeProvider(initialTheme: savedTheme),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(
+            create: (_) => ThemeProvider(initialTheme: savedTheme),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => HomeProvider(),
+          ),
+        ],
         child: const TimelyApp(),
       ),
     ),

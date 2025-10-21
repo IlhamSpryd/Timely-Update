@@ -1,35 +1,38 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class Endpoint {
-  static const String baseURL = "https://appabsensi.mobileprojp.com";
+  static String get baseURL =>
+      dotenv.env['BASE_URL'] ??  "https://appabsensi.mobileprojp.com";
 
   // Auth
-  static const String register = "$baseURL/api/register";
-  static const String login = "$baseURL/api/login";
-  static const String forgotPassword = "$baseURL/api/forgot-password";
-  static const String resetPassword = "$baseURL/api/reset-password";
+  static String get register => "$baseURL/api/register";
+  static String get login => "$baseURL/api/login";
+  static String get forgotPassword => "$baseURL/api/forgot-password";
+  static String get resetPassword => "$baseURL/api/reset-password";
 
   // Absen
-  static const String checkIn = "$baseURL/api/absen/check-in";
-  static const String checkOut = "$baseURL/api/absen/check-out";
-  static const String absenToday = "$baseURL/api/absen/today";
-  static const String absenStats = "$baseURL/api/absen/stats";
-  static const String history = "$baseURL/api/absen/history";
-  static const String izin = "$baseURL/api/izin";
-  static const String deleteAbsen = "$baseURL/api/delete-absen";
+  static String get checkIn => "$baseURL/api/absen/check-in";
+  static String get checkOut => "$baseURL/api/absen/check-out";
+  static String get absenToday => "$baseURL/api/absen/today";
+  static String get absenStats => "$baseURL/api/absen/stats";
+  static String get history => "$baseURL/api/absen/history";
+  static String get izin => "$baseURL/api/izin";
+  static String get deleteAbsen => "$baseURL/api/delete-absen";
 
   // Profile
-  static const String profile = "$baseURL/api/profile";
-  static const String profilePhoto = "$baseURL/api/profile/photo";
-  static const String updateProfile = "$baseURL/api/profile";
+  static String get profile => "$baseURL/api/profile";
+  static String get profilePhoto => "$baseURL/api/profile/photo";
+  static String get updateProfile => "$baseURL/api/profile";
 
   // Training & Batch
-  static const String trainingList = "$baseURL/api/trainings";
-  static const String batches = "$baseURL/api/batches";
-  static const String trainingDetail =
+  static String get trainingList => "$baseURL/api/trainings";
+  static String get batches => "$baseURL/api/batches";
+  static String get trainingDetail =>
       "$baseURL/api/trainings"; // /trainings/{id}
 
   // Device Token
-  static const String deviceToken = "$baseURL/api/device-token";
+  static String get deviceToken => "$baseURL/api/device-token";
 
   // Users
-  static const String allUsers = "$baseURL/api/users";
+  static String get allUsers => "$baseURL/api/users";
 }
